@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Bảng màu riêng cho phương án LTR. Không dùng chung với bản cd3_1.html để
 // việc thử nghiệm ngôn ngữ xanh chàm - gold không làm đổi phương án gốc.
 export const ARCHITECTURE_COLORS = Object.freeze({
-  wall: 0xffffff,
+  wall: 0x141793,
   wallEmissive: 0x181818,
   ceiling: 0xfffbf2,
   floor: 0x8fa9bb,
