@@ -1,0 +1,1 @@
+Đầu năm 1964, Ban Chấp hành Đoàn Trường phát động phong trào 'Tam bất kỳ'... Được sự đồng ý của lãnh đạo Nhà trường và Đoàn cấp trên, ngày 30/4/1964, Ban Chấp hành Đoàn Trường Đại học Sư phạm Hà Nội đã tổ chức Lễ phát động phong trào 'Ba sẵn sàng' tại Nghĩa trang Mai Dịch.

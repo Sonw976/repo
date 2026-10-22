@@ -1,0 +1,12 @@
+id,province_slug,province_name,display_place,historical_place,date,type,image_count,status,excel_row,content_source,rights_status
+ha-noi-yen-lang-2025,ha-noi,Hà Nội,"xã Yên Lãng, Hà Nội",,10/08/2025,gallery,3,published,2,"Excel cột C/I; Thông tin.md",chưa xác định
+ha-noi-lop-hoc-tinh-thuong,ha-noi,Hà Nội,"Làng trẻ SOS và Làng trẻ Birla, Hà Nội",,1999–2013,article,0,published,5,"Excel cột C/I; Lịch sử Đoàn trang 226","quyền trích dẫn chưa ghi nhận"
+ha-noi-a80-2025,ha-noi,Hà Nội,Hà Nội,,2025,gallery,3,published,4,"Excel cột C/I; Thông tin.md",chưa xác định
+ha-giang-mhx-2025,tuyen-quang,Tuyên Quang,"Hà Giang (nay thuộc tỉnh Tuyên Quang)",Hà Giang,18/07/2025,gallery,4,published,3,"Excel cột C/I; Thông tin.md",chưa xác định
+lang-son-bien-gioi-1979,lang-son,Lạng Sơn,Lạng Sơn,,1979,article,0,published,6,"Excel cột C/I; báo Thanh niên; nhật ký nhà giáo Quỳnh Liên","quyền trích dẫn chưa ghi nhận"
+thanh-hoa-ham-rong-1966,thanh-hoa,Thanh Hóa,"Cầu Hàm Rồng – Nam Ngạn - Thanh Hoá",,1966,article,0,published,9,"Excel cột C/I; Lịch sử Đoàn trang 275","quyền trích dẫn chưa ghi nhận"
+tan-lac-tri-thuc-tre-2026,phu-tho,Phú Thọ,"xã Tân Lạc, tỉnh Phú Thọ",,2026,gallery,1,published,10,"Excel cột C/I; tên ảnh",chưa xác định
+nghe-an-uom-mam-2026,nghe-an,Nghệ An,"2 điểm Trường Mầm non Yên Khê - Nghệ An",,22/06/2026,gallery,1,published,11,"Excel cột C/I; tên ảnh",chưa xác định
+phu-ly-chong-lu,ninh-binh,Ninh Bình,"thị xã Phủ Lý, Hà Nam (nay thuộc tỉnh Ninh Bình)",Hà Nam,1971–1972,article,0,pending,7,"Excel cột C/I mâu thuẫn","chưa đánh giá"
+hai-duong-de-kinh-thay-1969,hai-phong,Hải Phòng,"Nam Sách, Kinh Môn, Hải Dương (nay thuộc TP. Hải Phòng)",Hải Dương,1969,article,0,pending,8,"Excel cột C/I mâu thuẫn","chưa đánh giá"
+
