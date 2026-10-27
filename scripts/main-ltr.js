@@ -13,9 +13,7 @@ import {
 } from "./geometry/radial-geometry.js";
 import { createRadialCollision } from "./collision/radial-collision.js";
 import { getZoneContent } from "./data/zone-content.js";
-import {
-    ZONE3_PEOPLE, ZONE3_ACTIVITIES, ZONE3_ACHIEVEMENTS, ZONE3_TIMELINE
-} from "./data/zone3-content.js";
+import { ZONE3_PEOPLE, ZONE3_ACTIVITIES, ZONE3_ACHIEVEMENTS } from "./data/zone3-content.js";
 import { PROVINCE_ACTIVITIES } from "./data/province-activities.js";
 import { MAIN_DOOR_TARGET } from "./config/topic-navigation.js";
 import {
@@ -35,7 +33,7 @@ import {
 import {
     ARCHITECTURE_COLORS,
     createCircularArchitectureMaterials
-} from "./core/architectural-materials-ltr.js?v=20261019-5";
+} from "./core/architectural-materials.js";
 import { createConfiguredRenderer, resizeRenderer } from "./core/renderer.js";
 import { loadDisplayTexture, getTextureLoadAudit } from "./core/texture-loader.js";
 import { createAdaptiveFramePolicy } from "./runtime/frame-policy.js";
@@ -48,6 +46,14 @@ THREE.ColorManagement.enabled = true;
 // luôn xuất hiện ở phía người xem đi vào và diễn tiến từ trái sang phải.
 function zonePoint(zone, angleFraction, radius) {
     return radialZonePoint(zone, 1 - angleFraction, radius);
+}
+
+// Khi người xem quay vào tường lõi, hướng trái–phải theo mắt nhìn đảo lại so
+// với tường ngoài. Tường trong vì vậy dùng fraction gốc, không phản chiếu LTR.
+function wallZonePoint(zone, angleFraction, radius, faceInnerWall = false) {
+    return faceInnerWall
+        ? radialZonePoint(zone, angleFraction, radius)
+        : zonePoint(zone, angleFraction, radius);
 }
 
 let scene, camera, renderer;
@@ -124,6 +130,9 @@ const HEATMAP_FIRST_IMAGE_MS = 6000;
 const HEATMAP_NEXT_IMAGE_MS = 5000;
 const HEATMAP_LAST_IMAGE_EXTRA_MS = 2000;
 const HEATMAP_MANUAL_PAUSE_MS = 15000;
+let zone3PeopleSlideshow=null;
+const ZONE3_PEOPLE_SLIDE_MS=7000;
+const ZONE3_PEOPLE_MANUAL_PAUSE_MS=15000;
 
 // GLB chỉ có một mesh, nên các vùng bấm được đặt trên một lớp trong suốt ở phía
 // trước bản đồ. Tọa độ được chuẩn hoá (0..1), tính từ góc trái dưới của mặt map.
@@ -618,6 +627,8 @@ function handleClickAt(clientX, clientY) {
             navigateProvinceActivity(d.direction);
         } else if (d.type === 'heatmap-tv') {
             handleHeatmapTVClick(hit.uv);
+        } else if (d.type === 'zone3-person-nav') {
+            navigateZone3Person(d.direction,true);
         } else if (d.type === 'vietnam-map-reset') {
             focusVietnamRegion(null);
         } else if (d.type === 'topic-door') {
@@ -658,6 +669,44 @@ function publicSourceLabel(source = '') {
         .trim();
 }
 
+function renderInfoContent(element, content, useParagraphCards = false) {
+    const text = String(content || '').trim();
+    if (!useParagraphCards) {
+        element.classList.remove('paragraph-card-list');
+        element.textContent = text;
+        return;
+    }
+    element.classList.add('paragraph-card-list');
+    element.replaceChildren();
+    text.split(/\n+/).map(paragraph => paragraph.trim()).filter(Boolean).forEach(paragraph => {
+        const card = document.createElement('p');
+        card.className = 'info-paragraph-card';
+        card.textContent = paragraph;
+        element.appendChild(card);
+    });
+}
+
+function renderInfoTitle(element, title, usePersonLayout = false) {
+    if (!usePersonLayout) {
+        element.classList.remove('person-name-layout');
+        element.textContent = title || '';
+        return;
+    }
+    const label = splitZone3PersonTitle(title);
+    element.classList.add('person-name-layout');
+    element.replaceChildren();
+    if (label.ranks) {
+        const ranks = document.createElement('span');
+        ranks.className = 'person-title-ranks';
+        ranks.textContent = label.ranks;
+        element.appendChild(ranks);
+    }
+    const name = document.createElement('span');
+    name.className = 'person-title-name';
+    name.textContent = label.name;
+    element.appendChild(name);
+}
+
 function showInfoPanel(d) {
     moveForward = moveBackward = moveLeft = moveRight = false;
     velocity.set(0, 0, 0);
@@ -666,16 +715,26 @@ function showInfoPanel(d) {
     const panel = document.getElementById('info-panel');
     panel.classList.toggle('has-image', Boolean(d.imageUrl));
     panel.classList.toggle('photo-caption-mode', d.displayMode === 'photo-caption');
+    panel.classList.toggle('person-profile-mode', d.displayMode === 'person-profile');
+    panel.classList.toggle('activity-profile-mode', d.displayMode === 'activity-profile');
     panel.classList.toggle('infographic-mode', d.displayMode === 'infographic');
     panel.style.setProperty('--accent', hex);
     document.getElementById('info-zone').textContent = d.zoneName || '';
     document.getElementById('info-zone').style.color = hex;
     document.getElementById('info-code').textContent = d.code || '';
-    document.getElementById('info-title').textContent = d.title || '';
-    const publicSource = publicSourceLabel(d.source);
+    renderInfoTitle(
+        document.getElementById('info-title'),
+        d.title,
+        d.displayMode === 'person-profile'
+    );
+    const publicSource = d.displayMode === 'activity-profile' ? '' : publicSourceLabel(d.source);
     const metaParts = []; if (d.year) metaParts.push(d.year); if (publicSource) metaParts.push(publicSource);
     document.getElementById('info-meta').textContent = metaParts.join(' · ');
-    document.getElementById('info-content').textContent = d.content || '';
+    renderInfoContent(
+        document.getElementById('info-content'),
+        d.content,
+        d.displayMode === 'person-profile' || d.displayMode === 'activity-profile'
+    );
     
     const imgCont = document.getElementById('info-img-container');
     const imgEl = document.getElementById('info-img');
@@ -704,15 +763,40 @@ function showInfoPanel(d) {
         if (gallery.length > 1) {
             const nav = document.createElement('div');
             nav.className = 'info-gallery-nav';
-            gallery.forEach((galleryItem, index) => {
+            if (d.displayMode === 'activity-profile') {
+                nav.classList.add('is-arrow-nav');
+                let galleryIndex = Math.max(0, Math.min(gallery.length - 1, d.galleryIndex || 0));
+                const selectGalleryImage = index => {
+                    galleryIndex = (index + gallery.length) % gallery.length;
+                    const galleryItem = gallery[galleryIndex];
+                    imgEl.src = encodeURI(galleryItem.imageUrl);
+                    imgCont.style.display = 'flex';
+                };
+                [-1, 1].forEach(direction => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.textContent = direction < 0 ? '‹' : '›';
+                    button.setAttribute('aria-label', direction < 0 ? 'Ảnh trước' : 'Ảnh tiếp theo');
+                    button.addEventListener('click', () => selectGalleryImage(galleryIndex + direction));
+                    nav.appendChild(button);
+                });
+            } else gallery.forEach((galleryItem, index) => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.textContent = String(index + 1).padStart(2, '0');
                 button.className = index === (d.galleryIndex || 0) ? 'is-active' : '';
                 button.addEventListener('click', () => {
                     imgEl.src = encodeURI(galleryItem.imageUrl); imgCont.style.display = 'block';
-                    document.getElementById('info-title').textContent = galleryItem.title || '';
-                    document.getElementById('info-content').textContent = galleryItem.content || '';
+                    renderInfoTitle(
+                        document.getElementById('info-title'),
+                        galleryItem.title,
+                        d.displayMode === 'person-profile' || d.displayMode === 'activity-profile'
+                    );
+                    renderInfoContent(
+                        document.getElementById('info-content'),
+                        galleryItem.content,
+                        d.displayMode === 'person-profile'
+                    );
                     document.getElementById('info-meta').textContent = galleryItem.year || '';
                     nav.querySelectorAll('button').forEach(item => item.classList.toggle('is-active', item === button));
                 });
@@ -1150,8 +1234,6 @@ function buildArchitecture() {
     buildArcWall(R_CORE, 0, Math.PI * 2, [], WALL_H, WALL_THICK, ARCHITECTURE_COLORS.wall, 56, true);
     buildBaseboardStripe(R_CORE + WALL_THICK / 2 + .04, 0, Math.PI * 2, 56);
     buildCrownStripe(R_CORE + WALL_THICK / 2 + .04, 0, Math.PI * 2, 56);
-    buildLotusWallBand(R_CORE + WALL_THICK / 2 + .014, 0, Math.PI * 2, true);
-    buildFloralVineField(R_CORE + WALL_THICK / 2 + .018, 0, Math.PI * 2, true);
     createTV(Math.PI*213.5/180, R_CORE - WALL_THICK/2 - 0.05, 4.0, 1);
     createTV(Math.PI*326.5/180, R_CORE - WALL_THICK/2 - 0.05, 4.0, 2);
     createWallInfographic(R_CORE - WALL_THICK/2 - 0.05, 5.0);
@@ -1169,8 +1251,6 @@ function buildArchitecture() {
         buildArcWall(R_OUTER, outerStart, outerEnd, [], WALL_H, WALL_THICK, ARCHITECTURE_COLORS.wall, 26);
         buildBaseboardStripe(R_OUTER - WALL_THICK / 2 - 0.04, outerStart, outerEnd, 26);
         buildCrownStripe(R_OUTER - WALL_THICK / 2 - 0.04, outerStart, outerEnd, 26);
-        buildLotusWallBand(R_OUTER - WALL_THICK / 2 - .014, outerStart, outerEnd);
-        buildFloralVineField(R_OUTER - WALL_THICK / 2 - .018, outerStart, outerEnd);
 
         const lightCount = 2;
         for (let i = 0; i < lightCount; i++) {
@@ -1735,6 +1815,7 @@ function createLayeredRaisedSurface({
     roughness = .62, metalness = .03, transparent = false
 }) {
     // Giảm toàn bộ độ nổi còn 3/4 so với thiết lập ban đầu.
+    // Giảm còn một nửa so với độ dày khối liền hiện tại (.75 → .375).
     const effectiveDepth = depth * .75;
     const material = new THREE.MeshStandardMaterial({
         map: texture,
@@ -1762,6 +1843,33 @@ function createLayeredRaisedSurface({
     return { group, material };
 }
 
+// Cạnh ảnh liền khối dành cho gallery quan sát được từ góc xiên. Khác với
+// cơ chế nhiều lớp ở trên, khối này không lặp texture nên không tạo hiệu ứng
+// "xếp lá" khi người xem đứng gần mép bức tường.
+function createSolidPhotoBacking({
+    w, h, curveRadius, position, rotationY = 0,
+    depth = .105, color = 0x0092df, faceZ = 0
+}) {
+    // Giảm một nửa độ dày của khối nền đặc để góc nhìn ngang gọn hơn.
+    const effectiveDepth = depth * .375;
+    const segments = curveRadius ? 24 : 1;
+    const geometry = new THREE.BoxGeometry(w, h, effectiveDepth, segments, 1, 1);
+    // Đặt mặt trước khối nền ngay sau mặt hiển thị 0,001 đơn vị: không che
+    // texture, không z-fighting và không để lộ khe khi quan sát từ bên cạnh.
+    geometry.translate(0, 0, -effectiveDepth / 2 + faceZ - .001);
+    if (curveRadius) bendGeometry(geometry, curveRadius);
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+        color, roughness: .58, metalness: .08
+    }));
+    mesh.position.set(position.x, position.y, position.z);
+    mesh.rotation.y = rotationY;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.renderOrder = 2;
+    scene.add(mesh);
+    return mesh;
+}
+
 function createReferenceTitle(cfg) {
     const c = document.createElement('canvas'); 
     c.width = cfg.w ? cfg.w * 200 : 900; 
@@ -1777,24 +1885,41 @@ function createReferenceTitle(cfg) {
 
     const tColor = unifiedTextColor || ('#' + cfg.color.toString(16).padStart(6, '0'));
     const fontSize = cfg.fontSize || (unifiedBgColor ? 60 : 42);
-    ctx.fillStyle = tColor; ctx.font = '700 ' + fontSize + 'px ' + UI_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    wrapText(ctx, cfg.text, c.width / 2, c.height / 2, c.width - 80, fontSize * 1.25); 
+    const textAlign = cfg.textAlign === 'left' ? 'left' : (cfg.textAlign === 'right' ? 'right' : 'center');
+    const textPadding = cfg.textPadding || 40;
+    const textX = textAlign === 'left' ? textPadding : (textAlign === 'right' ? c.width - textPadding : c.width / 2);
+    ctx.fillStyle = tColor; ctx.font = '700 ' + fontSize + 'px ' + UI_FONT;
+    ctx.textAlign = textAlign; ctx.textBaseline = 'middle';
+    wrapText(ctx, cfg.text, textX, c.height / 2, c.width - textPadding * 2, fontSize * 1.25); 
 
     const tex = createSRGBCanvasTexture(c);
     const segments = cfg.curveRadius ? 32 : 1;
     const panelGeo = new THREE.PlaneGeometry(cfg.w || 4.8, cfg.h || 0.8, segments, 1);
+    // Tách mặt in khỏi mặt trước của khối nền để tránh z-fighting làm mất
+    // từng mảng chữ, đặc biệt dễ thấy trên các biển dài và tường cong.
+    panelGeo.translate(0,0,cfg.surfaceZ??.060);
     if (cfg.curveRadius) bendGeometry(panelGeo, cfg.curveRadius);
 
-    const matOpts = { map: tex, transparent: !unifiedBgColor };
+    const matOpts = {
+        map:tex,
+        transparent:!unifiedBgColor,
+        depthWrite:false,
+        polygonOffset:true,
+        polygonOffsetFactor:-2,
+        polygonOffsetUnits:-2
+    };
     if (cfg.color && !unifiedBgColor) { matOpts.emissive = cfg.color; matOpts.emissiveMap = tex; matOpts.emissiveIntensity = 0.28; } else if (unifiedBgColor) { matOpts.roughness = 0.6; }
 
     const panel = new THREE.Mesh(panelGeo, new THREE.MeshStandardMaterial(matOpts));
-    panel.position.set(cfg.x, cfg.y, cfg.z); panel.rotation.y = cfg.rotY; scene.add(panel);
+    panel.position.set(cfg.x, cfg.y, cfg.z);
+    panel.rotation.y = cfg.rotY;
+    panel.renderOrder=6;
+    scene.add(panel);
     if (unifiedBgColor) {
-        createLayeredRaisedSurface({
-            geometry: panelGeo, texture: tex,
-            position: { x: cfg.x, y: cfg.y, z: cfg.z }, rotationY: cfg.rotY,
-            tint: 0x9fc9df, depth: .09, layers: 6
+        createSolidPhotoBacking({
+            w: cfg.w || 4.8, h: cfg.h || .8, curveRadius: cfg.curveRadius,
+            position: cfg, rotationY: cfg.rotY, depth: cfg.depth??.09,
+            color: 0x0092df, faceZ: cfg.backingFaceZ??.035
         });
     }
 }
@@ -1841,7 +1966,11 @@ function createPortraitNamePanel(cfg) {
     if(cfg.curveRadius)bendGeometry(geometry,cfg.curveRadius);
     const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({map:texture,roughness:.7,side:THREE.DoubleSide}));
     mesh.position.set(cfg.x,cfg.y,cfg.z); mesh.rotation.y=cfg.rotY; scene.add(mesh);
-    createLayeredRaisedSurface({geometry,texture,position:cfg,rotationY:cfg.rotY,tint:0x8ebbd1,depth:.10,layers:7});
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: .10,
+        color: 0x0092df, faceZ: 0
+    });
     return mesh;
 }
 
@@ -1984,6 +2113,8 @@ function createWallPhotoTile(cfg) {
     const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.68, side: THREE.DoubleSide });
     const tile = new THREE.Mesh(geometry, material);
     let raisedLayers = null;
+    let solidBacking = null;
+    let hoverBorder = null;
     loadDisplayTexture(cfg.imageUrl, renderer, texture => {
         const imageAspect = texture.image.width / texture.image.height;
         const tileAspect = cfg.w / cfg.h;
@@ -2010,16 +2141,26 @@ function createWallPhotoTile(cfg) {
             raisedLayers.group.scale.x = tile.scale.x;
             raisedLayers.group.scale.y = tile.scale.y;
         }
+        if (solidBacking) {
+            solidBacking.scale.x = tile.scale.x;
+            solidBacking.scale.y = tile.scale.y;
+        }
+        if (typeof cfg.onAspectFit === 'function') {
+            cfg.onAspectFit({
+                width: cfg.w * tile.scale.x,
+                height: cfg.h * tile.scale.y,
+                imageAspect, tile, solidBacking
+            });
+        }
         framePolicy.invalidate(2);
     });
 
     const borderGeometry = new THREE.EdgesGeometry(geometry, 20);
     borderGeometry.translate(0, 0, 0.012);
-    const hoverBorder = new THREE.LineSegments(
+    hoverBorder = new THREE.LineSegments(
         borderGeometry,
         new THREE.LineBasicMaterial({
-            color: 0xd6b46a,
-            linewidth: 2,
+            color: 0xffcf62,
             transparent: true,
             opacity: 0,
             depthWrite: false,
@@ -2046,9 +2187,11 @@ function createWallPhotoTile(cfg) {
     tile.rotation.y = cfg.rotY;
     tile.castShadow = true;
     tile.receiveShadow = true;
-    raisedLayers = createLayeredRaisedSurface({
-        geometry, position: cfg, rotationY: cfg.rotY,
-        tint: 0xa4a4a4, depth: cfg.photoDepth || .105, layers: 7
+    solidBacking = createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY,
+        depth: cfg.photoDepth || .105,
+        color: cfg.backingColor || 0x0092df, faceZ: .035
     });
     tile.userData = {
         type: 'artifact', title: cfg.title, zoneName: cfg.zoneName, content: cfg.content,
@@ -2385,6 +2528,10 @@ function createZone1RaisedText(cfg) {
     canvas.height = Math.round(canvas.width / aspect);
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (cfg.backgroundColor) {
+        ctx.fillStyle = cfg.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     const text = String(cfg.text || '').trim();
     const meta = String(cfg.meta || '').trim();
@@ -2393,8 +2540,11 @@ function createZone1RaisedText(cfg) {
     const maxWidth = canvas.width - padX * 2;
     const maxHeight = canvas.height - padY * 2;
     const typography = getZone1TypographyProfile(cfg, canvas);
-    let fontSize = Math.max(16, Math.min(typography.preferredSize, canvas.height * .44));
-    const minSize = Math.min(fontSize, typography.recommendedMinSize);
+    const fixedFontSize = Number.isFinite(cfg.fixedWorldFontSize)
+        ? cfg.fixedWorldFontSize * canvas.height / cfg.h
+        : null;
+    let fontSize = fixedFontSize || Math.max(16, Math.min(typography.preferredSize, canvas.height * .44));
+    const minSize = fixedFontSize || Math.min(fontSize, typography.recommendedMinSize);
     let lines = [];
 
     const buildLines = size => {
@@ -2417,11 +2567,12 @@ function createZone1RaisedText(cfg) {
         const lineHeight = fontSize * 1.18;
         const metaHeight = meta ? Math.max(22, fontSize * .58) + fontSize * .18 : 0;
         if (lines.length * lineHeight + metaHeight <= maxHeight) break;
+        if (fixedFontSize) break;
         fontSize -= 2;
     }
     // Nếu nội dung nguồn quá dài so với khối, tiếp tục co tới ngưỡng an toàn
     // để không cắt chữ, đồng thời cảnh báo để người thiết kế cân nhắc tăng khối.
-    if (fontSize < minSize) {
+    if (!fixedFontSize && fontSize < minSize) {
         fontSize = minSize;
         lines = buildLines(fontSize);
         while (fontSize > typography.hardMinSize) {
@@ -2448,15 +2599,15 @@ function createZone1RaisedText(cfg) {
     const x = align === 'left' ? padX : align === 'right' ? canvas.width - padX : canvas.width / 2;
     ctx.textAlign = align;
     ctx.textBaseline = 'top';
-    ctx.shadowColor = 'rgba(2,4,35,.72)';
-    ctx.shadowBlur = Math.max(5, fontSize * .08);
-    ctx.shadowOffsetY = Math.max(3, fontSize * .045);
-    ctx.fillStyle = '#f5f3e8';
+    ctx.shadowColor = cfg.textShadow === false ? 'transparent' : 'rgba(2,4,35,.72)';
+    ctx.shadowBlur = cfg.textShadow === false ? 0 : Math.max(5, fontSize * .08);
+    ctx.shadowOffsetY = cfg.textShadow === false ? 0 : Math.max(3, fontSize * .045);
+    ctx.fillStyle = cfg.textColor || '#f5f3e8';
     ctx.font = `${cfg.fontWeight || 800} ${fontSize}px ${UI_FONT}`;
     lines.forEach((line, index) => ctx.fillText(line, x, top + index * lineHeight, maxWidth));
     if (meta) {
         ctx.shadowBlur = Math.max(3, metaSize * .06);
-        ctx.fillStyle = '#d4af37';
+        ctx.fillStyle = cfg.metaColor || '#d4af37';
         ctx.font = `800 ${metaSize}px ${UI_FONT}`;
         ctx.fillText(meta, x, top + lines.length * lineHeight + fontSize * .18, maxWidth);
     }
@@ -2475,10 +2626,10 @@ function createZone1RaisedText(cfg) {
     face.renderOrder = 4;
     scene.add(face);
 
-    createLayeredRaisedSurface({
-        geometry, texture, position: cfg, rotationY: cfg.rotY,
-        tint: 0x9b7826, depth: cfg.depth || .085, layers: 7,
-        roughness: .34, metalness: .38, transparent: true
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: cfg.depth || .085,
+        color: cfg.backingColor ?? 0x0092df, faceZ: 0
     });
     return face;
 }
@@ -2501,7 +2652,11 @@ function createZone1TextPanel(cfg) {
     geometry.translate(0, 0, .035); if (cfg.curveRadius) bendGeometry(geometry, cfg.curveRadius);
     const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ map: texture, roughness: .72, side: THREE.DoubleSide }));
     mesh.position.set(cfg.x, cfg.y, cfg.z); mesh.rotation.y = cfg.rotY;
-    createLayeredRaisedSurface({geometry,texture,position:cfg,rotationY:cfg.rotY,tint:0x8ebbd1,depth:.10,layers:7});
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: .10,
+        color: 0x0092df, faceZ: .035
+    });
     mesh.userData = { type: 'artifact', title: cfg.title, year: cfg.year, zoneName: cfg.zoneName,
         content: cfg.content || cfg.summary, source: cfg.source, color: RED,
         imageUrl: cfg.imageUrl, gallery: cfg.gallery, links: cfg.links, documents: cfg.documents };
@@ -2590,7 +2745,11 @@ function createZone1TealTextPanel(cfg) {
     if (cfg.curveRadius) bendGeometry(geometry, cfg.curveRadius);
     const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ map:texture, roughness:.72, side:THREE.DoubleSide }));
     mesh.position.set(cfg.x,cfg.y,cfg.z); mesh.rotation.y=cfg.rotY;
-    createLayeredRaisedSurface({geometry,texture,position:cfg,rotationY:cfg.rotY,tint:0x8ebbd1,depth:.10,layers:7});
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: .10,
+        color: 0x0092df, faceZ: .035
+    });
     mesh.userData={type:'artifact',title:cfg.label||'NỘI DUNG TƯ LIỆU',year:cfg.year,zoneName:cfg.zoneName,content:text,source:cfg.source,color:0x0092df,links:cfg.links};
     // Một số bảng chữ chỉ là thành phần trình bày gắn với ảnh. Khi
     // interactive=false, bảng vẫn hiển thị đầy đủ nhưng không hover/click
@@ -2669,15 +2828,17 @@ function createZone1CaptionedPhotoCard(cfg) {
     const hoverGeometry = new THREE.EdgesGeometry(geometry, 20);
     hoverGeometry.translate(0, 0, .012);
     const hoverBorder = new THREE.LineSegments(hoverGeometry, new THREE.LineBasicMaterial({
-        color:0xd6b46a, transparent:true, opacity:0, depthWrite:false, toneMapped:false
+        color: 0xffcf62, transparent: true, opacity: 0,
+        depthWrite: false, toneMapped: false
     }));
     hoverBorder.renderOrder = 5;
     mesh.add(hoverBorder);
     mesh.position.set(cfg.x, cfg.y, cfg.z); mesh.rotation.y = cfg.rotY;
     mesh.castShadow = true; mesh.receiveShadow = true;
-    createLayeredRaisedSurface({
-        geometry, texture, position: cfg, rotationY: cfg.rotY,
-        tint: 0xa4a4a4, depth: cfg.photoDepth || .105, layers: 7
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: cfg.photoDepth || .105,
+        color: 0x0092df, faceZ: .035
     });
     mesh.userData = {
         type:'artifact', displayMode:'photo-caption', title:cfg.title, zoneName:cfg.zoneName,
@@ -2993,8 +3154,8 @@ function buildZone1EditorialV2() {
     portraits.forEach((item,index)=>{
         const imageFraction=portraitColumns[Math.floor(index/2)];
         const rowY=portraitRows[index%2];
-        const imageP=zonePoint(Z,imageFraction,inner);
-        const nameP=zonePoint(Z,imageFraction-nameTravelOffset,inner);
+        const imageP=wallZonePoint(Z,imageFraction,inner,true);
+        const nameP=wallZonePoint(Z,imageFraction-nameTravelOffset,inner,true);
         const folderRoot=portraitRoot+item.folder+'/';
         const fullImage=folderRoot+item.full;
         const wallImage=folderRoot+(item.thumb||item.full);
@@ -3008,8 +3169,229 @@ function buildZone1EditorialV2() {
     });
 }
 
+function buildZone1EditorialV3() {
+    const Z=getZoneById(1);
+    const outer=WALL_MOUNT_R-.055;
+    const inner=R_CORE+WALL_THICK/2+.055;
+    const base='Tư liệu cụm 1/';
+    const baRoot=base+'Khu vực Ba Sẵn Sàng/';
+    const xepRoot=base+'Khu vực Xếp bút nghiên/';
+    const doiRoot=xepRoot+'Đội 146 ĐHSP Hà Nội tham gia khắc phục hậu quả chiến tranh tại Hầm Nà Tòng, Đồng Mỏ, Lạng Sơn năm 1972/';
+    const songCauRoot=xepRoot+'Cán bộ và sinh viên của Trường ĐHSP Hà Nội tham gia đi xây dựng phòng tuyến sông Cầu ở Bắc Ninh năm 1979/';
+    const arcLength=Math.abs(Z.a1-Z.a0)*outer;
+    const point=(fraction,offset=0,radius=outer)=>zonePoint(Z,fraction+offset/arcLength,radius);
+    const clean=file=>String(file).replace(/\.(?:jpe?g|png)$/iu,'').replaceAll('_',' ').replace(/\s+/gu,' ').trim();
+    const sourceLinks=[
+        {label:'Bài viết lịch sử HNUE',url:'https://staff.hnue.edu.vn/Tintuc-Sukien/Trangtintonghop/tabid/260/news/8/LichsuDHSPHaNoiThoiki1956-1965phanIIThapsangngonluaBasansang.aspx'},
+        {label:'Bảo tàng Lịch sử Quốc gia',url:'https://baotanglichsu.vn/vi/Articles/3097/14827/noi-khoi-nguon-phong-trao-ba-san-sangcua-thanh-nien-viet-nam-thoi-chong-my.html'}
+    ];
+    const center=zonePoint(Z,.5,MID_R);
+    createZone3DAudio(Z.audio,new THREE.Vector3(center.x,WALL_H/2,center.z),Z.id);
+    const heading=point(.5);
+    createReferenceTitle({x:heading.x,z:heading.z,y:9.35,rotY:faceCoreRotY(heading.angle),text:'YÊU NƯỚC CÁCH MẠNG',color:RED,curveRadius:outer,bgColor:'#8f1f18',textColor:'#fff4cf',w:7.5,h:.72});
+
+    const outline=(fraction,y,w,h,pad=.05)=>{
+        const p=point(fraction);
+        const geometry=new THREE.PlaneGeometry(w+pad*2,h+pad*2,32,1);
+        geometry.translate(0,0,.065);bendGeometry(geometry,outer);
+        const mesh=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,20),new THREE.LineBasicMaterial({color:0x0092df,transparent:true,opacity:.70,depthWrite:false,toneMapped:false}));
+        mesh.position.set(p.x,y,p.z);mesh.rotation.y=faceCoreRotY(p.angle);mesh.renderOrder=4;scene.add(mesh);
+    };
+    const textPanel=(fraction,y,w,h,label,text)=>{
+        const p=point(fraction);
+        createZone1TealTextPanel({x:p.x,z:p.z,y,rotY:faceCoreRotY(p.angle),curveRadius:outer,w,h,rawText:text,alignToImage:'left',label,source:'Tư liệu Cụm 1',links:sourceLinks,zoneName:Z.name,maxFontSize:58});
+    };
+    const openSectionBorder=(fraction,w,top,bottom)=>{
+        const material=new THREE.MeshBasicMaterial({color:0x0092df,side:THREE.DoubleSide,toneMapped:false});
+        const thickness=.035;
+        [-w/2,w/2].forEach(offset=>{
+            const p=point(fraction,offset);
+            const side=new THREE.Mesh(new THREE.PlaneGeometry(thickness,top-bottom),material);
+            side.position.set(p.x,(top+bottom)/2,p.z);
+            side.rotation.y=faceCoreRotY(p.angle);
+            side.translateZ(.072);
+            side.renderOrder=5;
+            scene.add(side);
+        });
+        const p=point(fraction);
+        const geometry=new THREE.PlaneGeometry(w,thickness,32,1);
+        geometry.translate(0,0,.072);
+        bendGeometry(geometry,outer);
+        const baseLine=new THREE.Mesh(geometry,material);
+        baseLine.position.set(p.x,bottom,p.z);
+        baseLine.rotation.y=faceCoreRotY(p.angle);
+        baseLine.renderOrder=5;
+        scene.add(baseLine);
+    };
+    const captionHeight=(text,width)=>{
+        const lineCount=Math.max(1,Math.ceil(String(text).length/Math.max(18,width/.075)));
+        return Math.max(.34,.12+lineCount*.17);
+    };
+    const card=(cfg)=>{
+        const p=point(cfg.fraction,cfg.offset||0);
+        const title=cfg.title||clean(cfg.file);
+        const captionH=cfg.captionH||captionHeight(title,cfg.w);
+        const bottom=cfg.bottom;
+        createStoryCaption({x:p.x,z:p.z,y:bottom+captionH/2,rotY:faceCoreRotY(p.angle),curveRadius:outer,title,meta:'',zoneName:Z.name,bgColor:ZONE2_CONTENT_BLUE,w:cfg.w,h:captionH,maxFontSize:76,fixedWorldFontSize:.13});
+        createWallPhotoTile({x:p.x,z:p.z,y:bottom+captionH+cfg.imageH/2,rotY:faceCoreRotY(p.angle),curveRadius:outer,w:cfg.w,h:cfg.imageH,imageUrl:cfg.root+cfg.file,title,content:title,source:cfg.source||'Tư liệu Cụm 1',accent:0x0092df,backingColor:0x006ea8,zoneName:Z.name,displayMode:'photo-caption',enableHoverBorder:true});
+    };
+    const stack=(fraction,items,top,bottom,columnW)=>{
+        const gap=.07;
+        const captions=items.map(item=>item.captionH||captionHeight(item.title||clean(item.file),columnW));
+        const baseHeights=items.map(item=>columnW/item.aspect);
+        const imageBudget=top-bottom-captions.reduce((a,b)=>a+b,0)-gap*(items.length-1);
+        const scale=imageBudget/baseHeights.reduce((a,b)=>a+b,0);
+        let cursor=top;
+        items.forEach((item,index)=>{
+            const imageH=baseHeights[index]*scale;
+            const w=columnW*scale;
+            const total=imageH+captions[index];
+            card({...item,fraction,w,imageH,captionH:captions[index],bottom:cursor-total});
+            cursor-=total+gap;
+        });
+    };
+    const sideStack=(fraction,items,top,bottom,groupW,options={})=>{
+        const gap=.07;
+        const rowH=(top-bottom-gap*(items.length-1))/items.length;
+        // Một đường chia cố định cho toàn bộ các hàng: mọi ảnh có cùng mép
+        // trái/phải, mọi khối chữ cũng có cùng mép trái/phải.
+        const imageW=options.imageWidth??groupW*(options.imageRatio??.48);
+        const textW=groupW-imageW;
+        items.forEach((item,index)=>{
+            const rowTop=top-index*(rowH+gap);
+            const imageH=Math.min(rowH,imageW/item.aspect);
+            // Trên mặt ngoài của tường cong, fraction lớn hơn nằm về phía trái
+            // theo tầm nhìn người tham quan: ảnh dùng offset dương, chữ dùng âm.
+            const imageOffset=groupW/2-imageW/2;
+            const textOffset=-groupW/2+textW/2;
+            const imagePoint=point(fraction,imageOffset);
+            const textPoint=point(fraction,textOffset);
+            const title=item.title||clean(item.file);
+            createWallPhotoTile({x:imagePoint.x,z:imagePoint.z,y:rowTop-rowH/2,rotY:faceCoreRotY(imagePoint.angle),curveRadius:outer,
+                w:imageW,h:imageH,imageUrl:item.root+item.file,title,content:title,source:options.source||'Tư liệu phong trào Ba sẵn sàng',
+                accent:0x0092df,backingColor:0x006ea8,zoneName:Z.name,displayMode:'photo-caption',enableHoverBorder:true});
+            createStoryCaption({x:textPoint.x,z:textPoint.z,y:rowTop-rowH/2,rotY:faceCoreRotY(textPoint.angle),curveRadius:outer,
+                title,meta:'',zoneName:Z.name,bgColor:ZONE2_CONTENT_BLUE,backgroundColor:ZONE2_CONTENT_BLUE,textColor:'#ffffff',
+                textShadow:false,backingColor:0x0092df,depth:.105,w:textW,h:imageH,maxFontSize:76,
+                fixedWorldFontSize:Math.min(options.fontSize??.13,imageH*.105)});
+        });
+    };
+    const floatingPhotoColumn=(fraction,items,top,bottom,gap=.075)=>{
+        // Mỗi cột tự suy ra một chiều rộng đồng nhất từ tỷ lệ ảnh, nhưng dùng
+        // chung top/bottom. Nhờ vậy hai cột thẳng mép trên và dưới mà không crop.
+        const availableHeight=top-bottom-gap*(items.length-1);
+        const width=availableHeight/items.reduce((sum,item)=>sum+1/item.aspect,0);
+        let cursor=top;
+        items.forEach(item=>{
+            const height=width/item.aspect;
+            const p=point(fraction);
+            const title=item.title||clean(item.file);
+            createWallPhotoTile({x:p.x,z:p.z,y:cursor-height/2,rotY:faceCoreRotY(p.angle),curveRadius:outer,
+                w:width,h:height,imageUrl:item.root+item.file,title,content:title,source:item.source||'Tư liệu Đội 146 ĐHSP Hà Nội',
+                accent:0x0092df,backingColor:0x006ea8,zoneName:Z.name,displayMode:'photo-caption',enableHoverBorder:true});
+            cursor-=height+gap;
+        });
+    };
+
+    // BA SẴN SÀNG: infographic -> cột 1 -> cột 2; ảnh Hàm Rồng nối liền phía dưới hai cột.
+    // Dồn trọn khu Ba Sẵn Sàng vào trong mặt tường, chừa khoảng
+    // an toàn với khung cửa mà không thu nhỏ infographic hay ảnh.
+    createZone1Infographic(Z,{fraction:.885,title:'PHONG TRÀO BA SẴN SÀNG',year:'1964',imageUrl:'infographic/inforgraphic phong trào Ba sẵn sàng.png',content:'Từ phong trào Tam bất kỳ đến lời hiệu triệu Ba sẵn sàng của tuổi trẻ Thủ đô và miền Bắc.',source:'Tư liệu tổng hợp Chủ đề 3',links:sourceLinks,accent:0x0092df,backingColor:0x006ea8});
+    const baTop=8.28,baBottom=3.12;
+    sideStack(.778,[
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG01.jpg',aspect:872/614,title:'Bí thư Đoàn trường Trịnh Ngọc Trình phát biểu tuyên thệ trong Lễ phát động phong trào “Ba sẵn sàng” tại Nghĩa trang Liệt sĩ Mai Dịch - Hà Nội, ngày 30/4/1964.'},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG02.jpg',aspect:1997/1347,title:'Bí thư Đảng ủy Trường ĐHSP Hà Nội Đỗ Đức Uyên trao cờ và giao nhiệm vụ cho Đoàn Thanh niên Trường quyết tâm thực hiện phong trào “Ba sẵn sàng” tại Lễ phát động ngày 30/4/1964.'},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG03.png',aspect:832/621,title:'Đoàn viên, sinh viên Trường ĐHSP Hà Nội hưởng ứng phong trào Ba sẵn sàng tại Lễ phát động ngày 30/4/1964.'}
+    ],baTop,baBottom,4.10,{imageWidth:2.208,fontSize:.11});
+    sideStack(.648,[
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Những năm 1964-1965, lớp trẻ thủ đô sẵn sàng “xẻ dọc Trường Sơn đi cứu nước”.jpg',aspect:960/626},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Lễ xuất phát của Đoàn Thanh niên xung phong Hà Nội lên đường chống Mỹ, cứu nước, tổ chức ở Nhà hát lớn Hà Nội ngày 11-7-1969.jpg',aspect:2048/2110},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Thanh niên miền Bắc sôi nổi hưởng ứng phong trào Ba sẵn sàng (1969).jpg',aspect:665/464},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Từ mảnh đất thiêng Thăng Long - Đông Đô - Hà Nội, phong trào “Ba sẵn sàng” nhanh chóng lan rộng ra cả nước và trở thành cao trào cách mạng của tuổi trẻ.jpg',aspect:640/453}
+    ],baTop,baBottom,4.10,{imageWidth:2.208,fontSize:.11});
+    const hamRongTitle='Sinh viên Trường ĐHSP Hà Nội tham gia phục vụ chiến đấu tại Cầu Tào, Hàm Rồng, Thanh Hoá, ngày 15/8/1966.';
+    card({fraction:.713,root:baRoot,file:'Sinh viên trường ĐHSPHN tham gia phục vụ chiến đấu tại cầu Tào, Hàm Rồng, Thanh Hoá, 15⁄8⁄1966.jpg',title:hamRongTitle,w:9.05,imageH:1.08,captionH:.44,bottom:1.34});
+
+    // XẾP BÚT NGHIÊN: infographic và hai nhóm ảnh độc lập theo đúng hai thư mục mới.
+    createZone1Infographic(Z,{fraction:.535,title:'XẾP BÚT NGHIÊN LÊN ĐƯỜNG RA TRẬN',year:'1966–1979',imageUrl:'infographic/Infographic phong trào Xếp bút nghiên lên đường ra trận.png',content:'Cán bộ và sinh viên tạm gác việc giảng dạy, học tập để chiến đấu, phục vụ chiến đấu và bảo vệ Tổ quốc.',source:'Tư liệu tổng hợp Chủ đề 3',links:sourceLinks});
+
+    const doiCenter=.375;
+    textPanel(doiCenter,7.93,6.25,.70,'ĐỘI THANH NIÊN XUNG KÍCH · 1972','Cuối năm 1972, Đội Thanh niên Xung kích gồm 36 cán bộ, sinh viên Trường Đại học Sư phạm Hà Nội I tham gia phục vụ giao thông vận tải, khắc phục hậu quả bom đạn Mỹ trên tuyến đường sắt Hà Nội – Lạng Sơn.');
+    const doiLeft=doiCenter+1.55/arcLength,doiRight=doiCenter-1.55/arcLength;
+    // Hai cột ảnh nổi, không ghép thêm khối chữ. Lễ xuất phát ở bên trái
+    // theo đúng hướng nhìn của người tham quan; mọi ảnh giữ nguyên tỷ lệ gốc.
+    floatingPhotoColumn(doiLeft,[
+        {root:doiRoot+'Cột ảnh lễ xuất phát/',file:'Quang cảnh lễ xuất phát.jpg',aspect:3000/2147},
+        {root:doiRoot+'Cột ảnh lễ xuất phát/',file:'Nữ sinh viên hát tại lễ xuất phát Đội 146 đi tham gia khắc phục hậu quả chiến tranh, 1972.jpg',aspect:3000/2115},
+        {root:doiRoot+'Cột ảnh lễ xuất phát/',file:'Đồng chí Bí thư Đoàn trường Trần Quang Nhiếp phát biểu tại lễ xuất phát đội 146.jpg',aspect:3000/2162}
+    ],7.45,3.42);
+    floatingPhotoColumn(doiRight,[
+        {root:doiRoot+'Cột ảnh hoạt động/',file:'Một số hình ảnh của Đội 146 ĐHSP Hà Nội tham gia khắc phục hậu quả chiến tranh tại Hầm Nà Tòng, Đồng Mỏ, Lạng Sơn, 1972 - 1.jpg',aspect:3000/2096},
+        {root:doiRoot+'Cột ảnh hoạt động/',file:'Một số hình ảnh của Đội 146 ĐHSP Hà Nội tham gia khắc phục hậu quả chiến tranh tại Hầm Nà Tòng, Đồng Mỏ, Lạng Sơn, 1972 - 2.jpg',aspect:3000/1539},
+        {root:doiRoot+'Cột ảnh hoạt động/',file:'Một số hình ảnh của Đội 146 ĐHSP Hà Nội tham gia khắc phục hậu quả chiến tranh tại Hầm Nà Tòng, Đồng Mỏ, Lạng Sơn, 1972 - 3.jpg',aspect:3000/2440}
+    ],7.45,3.42);
+    const a7Point=point(doiCenter);
+    const a7Width=4.15,a7Height=a7Width/(1720/1049),a7Bottom=.60;
+    const a7Title='Tổ trực đài quan sát tham gia chiến đấu đặt trên nóc toà nhà A7 của Trường Đại học Sư phạm Hà Nội năm 1972.';
+    createWallPhotoTile({x:a7Point.x,z:a7Point.z,y:a7Bottom+a7Height/2,rotY:faceCoreRotY(a7Point.angle),curveRadius:outer,
+        w:a7Width,h:a7Height,imageUrl:doiRoot+'Tổ trực đài quan sát tham gia chiến đấu đặt trên nóc toà nhà A7 của Trường Đại học Sư phạm Hà Nội năm 1972.jpg',
+        title:a7Title,content:a7Title,source:'Tư liệu Đội 146 ĐHSP Hà Nội',accent:0x0092df,backingColor:0x006ea8,
+        zoneName:Z.name,displayMode:'photo-caption',enableHoverBorder:true});
+    openSectionBorder(doiCenter,6.25,7.58,.46);
+
+    // Gom ba cột Trung đoàn 32 và dịch nhẹ vào trong để không
+    // chạm cột phân cụm. Kích thước từng ảnh được giữ nguyên.
+    const songCenter=.145;
+    const songGroupWidth=8.75;
+    textPanel(songCenter,7.93,songGroupWidth,.70,'TRUNG ĐOÀN 32 · 1979',"Tháng 5 năm 1979, Trường Đại học Sư phạm Hà Nội I thành lập Trung đoàn 32 gồm 1.345 người tham gia xây dựng phòng tuyến Sông Cầu, bảo vệ Thủ đô.");
+    const songColumns=[songCenter+2.82/arcLength,songCenter,songCenter-2.82/arcLength];
+    const songItems=[
+        ['Cột ảnh lễ xuất phát/','Lễ xuất phát Trung đoàn 32 đi xây dựng phòng tuyến Sông Cầu năm 1979 - 1.jpg',2161/1284],
+        ['Cột ảnh lễ xuất phát/','Lễ xuất phát Trung đoàn 32 đi xây dựng phòng tuyến Sông Cầu năm 1979 - 2.jpg',2066/1282],
+        ['Cột ảnh lễ xuất phát/','Lễ kết nạp đảng viên ngay trên phòng tuyến, 1979.jpg',1972/1284],
+        ['Cột ảnh lễ xuất phát/','CBSV sẵn sàng tinh thần tình nguyện lên đường chiến đấu bảo vệ Tổ quốc khi chiến tranh Biên giới xảy ra, 1979.jpg',1864/1284],
+        ['Cột ảnh cán bộ làm việc và lao động/','Hiệu trưởng Dương Trọng Bái đến thăm cán bộ, chiến sĩ Trung đoàn 32 trên phòng tuyến Sông Cầu, 1979.jpg',1802/1282],
+        ['Cột ảnh cán bộ làm việc và lao động/','Ban chỉ huy Trung đoàn 32 hội ý phương án mới ngay trên phòng tuyến.jpg',1725/1282],
+        ['Cột ảnh cán bộ làm việc và lao động/','Cán bộ kĩ thuật Đoàn Nguyễn Huệ nghiệm thu sau mỗi ngày làm việc phân việc của trường ĐHSP Hà Nội trên phòng tuyến Sông Cầu, 1979.jpg',1859/1282],
+        ['Cột ảnh cán bộ làm việc và lao động/','Khoa Ngữ văn xuất quân trên phòng tuyến Sông Cầu, 5⁄1979.jpg',2047/1282],
+        ['Cột ảnh các đơn vị/Cụm ảnh lao động của đơn vị/','Khoa Giáo dục Chính trị - đơn vị dẫn đầu Trung đoàn 32 ĐHSP Hà Nội I trên phòng tuyến về năng suất lao động và phá đá.jpg',1621/1283],
+        ['Cột ảnh các đơn vị/Cụm ảnh lao động của đơn vị/','Đại đội khoa Hoá lao động trên phòng tuyến.jpg',1981/1282],
+        ['Cột ảnh các đơn vị/Cụm ảnh giải lao/','Phút nghỉ ngơi giải lao của CBSV khoa Lịch sử trên phòng tuyến sông Cầu.jpg',1693/1282],
+        ['Cột ảnh các đơn vị/Cụm ảnh giải lao/','Thi đấu bóng chuyền trong ngày nghỉ trên phòng tuyến Sông Cầu, 1979, nguồn_ 60 Đại học Sư phạm Hà Nội qua hình ảnh.jpg',1854/1282]
+    ];
+    songColumns.forEach((fraction,index)=>floatingPhotoColumn(
+        fraction,
+        songItems.slice(index*4,index*4+4).map(item=>({
+            root:songCauRoot+item[0],file:item[1],aspect:item[2],source:'Tư liệu Trung đoàn 32 trên phòng tuyến Sông Cầu'
+        })),
+        7.45,1.10,.075
+    ));
+    openSectionBorder(songCenter,songGroupWidth,7.58,.92);
+
+    // Tường trong: chân dung phía trên, khung tên gắn sát ngay dưới như Chủ đề 5.
+    const portraitRoot=base+'Ảnh một số gương mặt cán bộ, sinh viên tiêu biểu tham gia phong trào/';
+    const portraits=[
+        {folder:'1',name:'BÍ THƯ TRỊNH NGỌC TRÌNH',wall:'Bí thư Đoàn trường Trịnh Ngọc Trình phát biểu tuyên thệ trong buổi lễ phát động phong trào "Ba Sẵn Sàng".jpg',content:'Bí thư Đoàn trường Trịnh Ngọc Trình phát biểu tuyên thệ trong buổi lễ phát động phong trào Ba sẵn sàng.'},
+        {folder:'2',name:'TRẦN QUANG NHIẾP',wall:'Ảnh chân dung.jpg',modal:'Đồng chí Bí thư Đoàn trường Trần Quang Nhiếp phát biểu tại lễ xuất phát đội 146.jpg',content:'Đồng chí Bí thư Đoàn trường Trần Quang Nhiếp phát biểu tại lễ xuất phát Đội 146.'},
+        {folder:'3',name:'TÔN THỊ TĨNH',wall:'Đồng chí Tôn Thị Tĩnh - Bí thư LCĐ khoa Hoá.jpg',content:'Đồng chí Tôn Thị Tĩnh - Bí thư Liên chi đoàn Khoa Hoá - xung phong đi công tác miền Nam theo tiếng gọi của phong trào Ba sẵn sàng, hoạt động trong lòng địch, bị địch bắt và đưa đi qua các nhà tù nhưng đã may mắn trở về.'},
+        {folder:'4',name:'HỒ QUANG DIỆU',wall:'Chân dung.jpg',modal:'Chiến sĩ trẻ Hồ Quang Diệu (thứ 3 từ trái sang) sinh viên Khoa Văn, thăm C2 - đơn vị có nhiều cán bộ, sinh viên Trường ĐHSP Hà Nội, 1970.jpg',content:'Chiến sĩ trẻ Hồ Quang Diệu, sinh viên Khoa Văn, thăm C2 - đơn vị có nhiều cán bộ, sinh viên Trường ĐHSP Hà Nội, năm 1970.'},
+        {folder:'5',name:'LIỆT SĨ ĐẶNG XUÂN RƯƠNG',wall:'Liệt sĩ Đặng Xuân Rương - Phó Bí thư Đoàn trường ĐHSP Hà Nội - hy sinh cuối năm 1970 khi đang cùng sư đoàn 308 tiến đánh vào Khe Sanh.jpg',content:'Liệt sĩ Đặng Xuân Rương - Phó Bí thư Đoàn trường ĐHSP Hà Nội - hy sinh cuối năm 1970 khi đang cùng Sư đoàn 308 tiến đánh vào Khe Sanh.'},
+        {folder:'6',name:'LIỆT SĨ VŨ ĐÌNH VĂN',wall:'Liệt sĩ Vũ Đình Văn - sinh viên năm thứ hai Khoa Văn - nhập ngũ năm 1971, hy sinh cuối năm 1972 tại Vân Đình.jpg',content:'Liệt sĩ Vũ Đình Văn - sinh viên năm thứ hai Khoa Văn - nhập ngũ năm 1971, hy sinh cuối năm 1972 tại Vân Đình.'}
+    ];
+    const cols=[.76,.50,.24],rows=[6.25,3.25];
+    portraits.forEach((item,index)=>{
+        const p=wallZonePoint(Z,cols[Math.floor(index/2)],inner,true);
+        const root=portraitRoot+item.folder+'/';
+        const photoW=1.62,photoH=1.88,labelH=.54;
+        createWallPhotoTile({x:p.x,z:p.z,y:rows[index%2]+labelH/2,rotY:faceCoreRotY(p.angle)+Math.PI,w:photoW,h:photoH,curveRadius:-inner,imageUrl:root+item.wall,modalImageUrl:root+(item.modal||item.wall),title:item.name,content:item.content,source:'Tư liệu gương mặt cán bộ, sinh viên tiêu biểu',accent:0x0092df,backingColor:0x006ea8,zoneName:Z.name,displayMode:'photo-caption'});
+        createStoryCaption({x:p.x,z:p.z,y:rows[index%2]-photoH/2,rotY:faceCoreRotY(p.angle)+Math.PI,
+            title:item.name,meta:'',zoneName:Z.name,bgColor:ZONE2_CONTENT_BLUE,
+            curveRadius:-inner,w:photoW,h:labelH,maxFontSize:76,fixedWorldFontSize:.145});
+    });
+}
+
 function buildZone1_YeuNuoc() {
-    if (USE_ZONE1_EDITORIAL_V2) { buildZone1EditorialV2(); return; }
+    if (USE_ZONE1_EDITORIAL_V2) { buildZone1EditorialV3(); return; }
     const Z = getZoneById(1); 
     const content = getZoneContent(1);
 
@@ -3114,31 +3496,338 @@ function createZone3TimelineConnector(zone, fraction, fromY, toY) {
 
 function createZone3SourceCard({
     zone, item, fraction, y, width, height, radius, zoneName,
-    faceInnerWall = false, captionHeight = .72, captionFontSize = 20
+    faceInnerWall = false, captionHeight = .72, captionFontSize = 20,
+    displayMode = 'photo-caption', captionText = null, uniformFootprint = false,
+    captionBottom = null
 }) {
-    const point = zonePoint(zone, fraction, radius);
+    const point = wallZonePoint(zone, fraction, radius, faceInnerWall);
     const rotation = faceCoreRotY(point.angle) + (faceInnerWall ? Math.PI : 0);
     const galleryItems = [item.image, ...(item.gallery || [])].map(imageUrl => ({
         imageUrl, title: item.title, content: item.content || '', year: item.year || item.period || ''
     }));
     const timeLabel = item.year || item.period || '';
-    const wallCaption = [timeLabel, item.title].filter(Boolean).join(' · ');
+    const wallCaption = captionText ?? [timeLabel, item.title].filter(Boolean).join(' · ');
+    if (uniformFootprint) {
+        const backingGeometry = new THREE.PlaneGeometry(width,height,24,1);
+        backingGeometry.translate(0,0,.018);
+        if (radius) bendGeometry(backingGeometry,faceInnerWall?-radius:radius);
+        const backing = new THREE.Mesh(backingGeometry,new THREE.MeshStandardMaterial({
+            color:0xffffff,roughness:.78,side:THREE.DoubleSide
+        }));
+        backing.position.set(point.x,y,point.z);
+        backing.rotation.y=rotation;
+        backing.receiveShadow=true;
+        scene.add(backing);
+    }
     createWallPhotoTile({
         x: point.x, z: point.z, y, rotY: rotation,
         w: width, h: height, curveRadius: faceInnerWall ? -radius : radius,
         imageUrl: item.image, title: item.title, year: item.year || item.period,
         content: item.content || '', source: item.source, accent: BLUE,
         zoneName, gallery: item.gallery || [], galleryItems,
-        displayMode: 'photo-caption', enableHoverBorder: true,
-        permanentBorder: false, preserveAspect: true
+        displayMode, enableHoverBorder: true,
+        permanentBorder: false, preserveAspect: true,
+        onAspectFit: uniformFootprint ? undefined : fitted => {
+            // Tính chiều cao biển tên theo đúng số dòng thực tế. Biển tên đồng
+            // thời lấy đúng chiều rộng và bám sát đáy ảnh sau khi fit tỉ lệ.
+            const textPadding = 28;
+            const measureCanvas = document.createElement('canvas');
+            const measureContext = measureCanvas.getContext('2d');
+            measureContext.font = `700 ${captionFontSize}px ${UI_FONT}`;
+            const maxTextWidth = Math.max(80, fitted.width * 200 - textPadding * 2);
+            const words = String(wallCaption).trim().split(/\s+/);
+            let line = '';
+            let lineCount = 0;
+            words.forEach(word => {
+                const candidate = line ? `${line} ${word}` : word;
+                if (line && measureContext.measureText(candidate).width > maxTextWidth) {
+                    lineCount += 1;
+                    line = word;
+                } else line = candidate;
+            });
+            if (line) lineCount += 1;
+            const anchoredCaption=Number.isFinite(captionBottom);
+            const fittedCaptionHeight = anchoredCaption ? captionHeight : Math.max(
+                .4,
+                Math.min(captionHeight, (lineCount * captionFontSize * 1.25 + 38) / 200)
+            );
+            const fittedCaptionY = anchoredCaption
+                ? captionBottom+fittedCaptionHeight/2
+                : y-fitted.height/2-fittedCaptionHeight/2;
+            if (anchoredCaption) {
+                const fittedImageY=captionBottom+fittedCaptionHeight+fitted.height/2;
+                fitted.tile.position.y=fittedImageY;
+                if (fitted.solidBacking) fitted.solidBacking.position.y=fittedImageY;
+            }
+            createReferenceTitle({
+                x: point.x, z: point.z, y: fittedCaptionY, rotY: rotation,
+                text: wallCaption, color: BLUE, curveRadius: faceInnerWall ? -radius : radius,
+                bgColor: '#0092df', textColor: '#ffffff',
+                fontSize: captionFontSize, w: fitted.width, h: fittedCaptionHeight,
+                textAlign: 'left', textPadding,
+                // Ảnh và chú thích là một tấm liền: cùng mặt trước .035,
+                // cùng độ dày .105 và cùng bán kính cong của bức tường.
+                surfaceZ:.035,backingFaceZ:.035,depth:.105
+            });
+        }
     });
-    const captionY = y - height / 2 - captionHeight / 2 - .10;
-    createReferenceTitle({
-        x: point.x, z: point.z, y: captionY, rotY: rotation,
-        text: wallCaption, color: BLUE, curveRadius: faceInnerWall ? -radius : radius,
-        bgColor: '#0092df', textColor: '#ffffff',
-        fontSize: captionFontSize, w: width + .14, h: captionHeight
+    if (uniformFootprint) {
+        createReferenceTitle({
+            x:point.x,z:point.z,y:y-height/2-captionHeight/2,rotY:rotation,
+            text:wallCaption,color:BLUE,curveRadius:faceInnerWall?-radius:radius,
+            bgColor:'#0092df',textColor:'#ffffff',fontSize:captionFontSize,
+            w:width,h:captionHeight,textAlign:'left',textPadding:28,
+            surfaceZ:.035,backingFaceZ:.035,depth:.105
+        });
+    }
+}
+
+// Thẻ Cụm 3 liền khối: ảnh và chú thích được vẽ chung lên một canvas,
+// uốn chung một lần và dùng chung một lớp nền. Vì không còn hai mesh độc lập,
+// mép nối không gãy hoặc lệch khi quan sát xiên trên tường cong.
+function createZone3UnifiedCard({
+    zone,item,fraction,captionBottom,width,radius,zoneName,
+    faceInnerWall=false,captionHeight=.68,fontSize=19,layout='vertical',height=2.23
+}){
+    const point=wallZonePoint(zone,fraction,radius,faceInnerWall);
+    const rotation=faceCoreRotY(point.angle)+(faceInnerWall?Math.PI:0);
+    loadDisplayTexture(item.image,renderer,loadedTexture=>{
+        const image=loadedTexture.image;
+        const imageAspect=image.width/image.height;
+        const totalHeight=layout==='horizontal'?height:width/imageAspect+captionHeight;
+        const canvas=document.createElement('canvas');
+        canvas.width=900;
+        canvas.height=Math.max(1,Math.round(canvas.width*totalHeight/width));
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+        let captionX,captionY,captionW,captionH;
+        if(layout==='horizontal'){
+            const imageWorldW=Math.min(width*.62,height*imageAspect);
+            const imagePx=Math.round(canvas.width*imageWorldW/width);
+            ctx.drawImage(image,0,0,imagePx,canvas.height);
+            captionX=imagePx;captionY=0;captionW=canvas.width-imagePx;captionH=canvas.height;
+        }else{
+            const imageWorldH=width/imageAspect;
+            const imagePxH=Math.round(canvas.height*imageWorldH/totalHeight);
+            ctx.drawImage(image,0,0,canvas.width,imagePxH);
+            captionX=0;captionY=imagePxH;captionW=canvas.width;captionH=canvas.height-imagePxH;
+        }
+        ctx.fillStyle=ZONE2_CONTENT_BLUE;ctx.fillRect(captionX,captionY,captionW,captionH);
+        ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=6;
+        ctx.strokeRect(captionX+7,captionY+7,captionW-14,captionH-14);
+        const label=[item.year,item.title].filter(Boolean).join(' · ');
+        const pxPerWorld=canvas.width/width;
+        const textSize=Math.round(fontSize*pxPerWorld/200);
+        const pad=Math.max(18,Math.round(captionW*.055));
+        const maxTextWidth=captionW-pad*2;
+        ctx.font=`700 ${textSize}px ${UI_FONT}`;
+        const words=label.split(/\s+/).filter(Boolean),lines=[];
+        let line='';
+        words.forEach(word=>{
+            const candidate=line?`${line} ${word}`:word;
+            if(line&&ctx.measureText(candidate).width>maxTextWidth){lines.push(line);line=word;}
+            else line=candidate;
+        });
+        if(line)lines.push(line);
+        const lineHeight=textSize*1.22;
+        const textTop=captionY+Math.max(pad,(captionH-lines.length*lineHeight)/2);
+        ctx.fillStyle='#ffffff';ctx.textAlign='left';ctx.textBaseline='top';
+        lines.forEach((text,index)=>ctx.fillText(text,captionX+pad,textTop+index*lineHeight,maxTextWidth));
+
+        const texture=createSRGBCanvasTexture(canvas);
+        texture.anisotropy=renderer?.capabilities.getMaxAnisotropy()||4;
+        const geometry=new THREE.PlaneGeometry(width,totalHeight,32,1);
+        geometry.translate(0,0,.025);
+        if(radius)bendGeometry(geometry,faceInnerWall?-radius:radius);
+        const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({
+            map:texture,roughness:.62,side:THREE.DoubleSide,polygonOffset:true,
+            polygonOffsetFactor:-1,polygonOffsetUnits:-1
+        }));
+        mesh.position.set(point.x,captionBottom+totalHeight/2,point.z);
+        mesh.rotation.y=rotation;mesh.renderOrder=4;mesh.castShadow=true;mesh.receiveShadow=true;
+        const border=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,20),new THREE.LineBasicMaterial({
+            color:0xffcf62,transparent:true,opacity:0,depthWrite:false,toneMapped:false
+        }));
+        border.renderOrder=6;mesh.add(border);
+        createSolidPhotoBacking({
+            w:width,h:totalHeight,curveRadius:faceInnerWall?-radius:radius,
+            position:{x:point.x,y:captionBottom+totalHeight/2,z:point.z},rotationY:rotation,
+            depth:.06,color:0x006ea8,faceZ:.024
+        });
+        mesh.userData={
+            type:'artifact',displayMode:'activity-profile',title:item.title,year:item.year,
+            zoneName,content:item.content||'',source:item.source,color:BLUE,imageUrl:item.image,
+            gallery:item.gallery||[],galleryItems:[item.image,...(item.gallery||[])].map(imageUrl=>({
+                imageUrl,title:item.title,content:item.content||'',year:item.year||''
+            })),hoverBorder:border
+        };
+        interactiveObjects.push(mesh);scene.add(mesh);loadedTexture.dispose();framePolicy.invalidate(3);
     });
+}
+
+function createZone3PersonArrowTexture(symbol){
+    const canvas=document.createElement('canvas');
+    canvas.width=192;canvas.height=256;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#0092df';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle='#ffcf62';ctx.lineWidth=8;ctx.strokeRect(5,5,canvas.width-10,canvas.height-10);
+    ctx.fillStyle='#ffffff';ctx.font=`900 150px ${UI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(symbol,canvas.width/2,canvas.height/2-8);
+    return createSRGBCanvasTexture(canvas);
+}
+
+function splitZone3PersonTitle(title=''){
+    const source=String(title).trim();
+    const lifeMatch=source.match(/\(([^()]*)\)\s*$/u);
+    const life=lifeMatch ? lifeMatch[1].trim() : '';
+    const withoutLife=(lifeMatch ? source.slice(0,lifeMatch.index) : source).trim();
+    const rankMatch=withoutLife.match(/^((?:(?:PGS|GS|TSKH|TS|VS|NGND|NGƯT|AHLĐ)\.?\s*)+)/iu);
+    const rankSource=rankMatch ? rankMatch[1] : '';
+    const ranks=rankSource.match(/PGS|GS|TSKH|TS|VS|NGND|NGƯT|AHLĐ/giu) || [];
+    return {
+        ranks:ranks.map(rank=>rank.toUpperCase()+'.').join(' '),
+        name:withoutLife.slice(rankSource.length).trim(),
+        life
+    };
+}
+
+function fitSingleCanvasLine(ctx,text,maxSize,minSize,maxWidth,weight=900){
+    let size=maxSize;
+    ctx.font=`${weight} ${size}px ${UI_FONT}`;
+    while(size>minSize&&ctx.measureText(text).width>maxWidth){
+        size--;
+        ctx.font=`${weight} ${size}px ${UI_FONT}`;
+    }
+    return size;
+}
+
+function renderZone3PersonSlide(){
+    const state=zone3PeopleSlideshow;
+    if(!state)return;
+    const item=ZONE3_PEOPLE[state.index];
+    const ctx=state.ctx,canvas=state.canvas;
+    const imageBottom=650;
+    const token=++state.renderToken;
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,imageBottom);
+    ctx.fillStyle='#eaf4fd';ctx.font=`700 28px ${UI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('ĐANG TẢI CHÂN DUNG…',canvas.width/2,imageBottom/2);
+    ctx.fillStyle='#0092df';ctx.fillRect(0,imageBottom,canvas.width,canvas.height-imageBottom);
+    ctx.fillStyle='#ffcf62';ctx.fillRect(0,imageBottom,11,canvas.height-imageBottom);
+    ctx.textAlign='center';ctx.textBaseline='top';
+    const label=splitZone3PersonTitle(item.title);
+    const publicPersonName=[label.ranks,label.name].filter(Boolean).join(' ');
+    const centerX=canvas.width/2+5;
+    const maxTextWidth=canvas.width-92;
+    if(label.ranks){
+        ctx.fillStyle='#dff3ff';
+        fitSingleCanvasLine(ctx,label.ranks,28,21,maxTextWidth,800);
+        ctx.fillText(label.ranks,centerX,676,maxTextWidth);
+        ctx.fillStyle='#ffffff';
+        fitSingleCanvasLine(ctx,label.name.toUpperCase(),44,28,maxTextWidth,900);
+        ctx.fillText(label.name.toUpperCase(),centerX,718,maxTextWidth);
+    }else{
+        ctx.fillStyle='#ffffff';
+        fitSingleCanvasLine(ctx,label.name.toUpperCase(),44,28,maxTextWidth,900);
+        ctx.fillText(label.name.toUpperCase(),centerX,700,maxTextWidth);
+    }
+    state.texture.needsUpdate=true;
+
+    // Hồ sơ nhân vật chỉ sử dụng ảnh chân dung đã được biên tập. Các ảnh tư
+    // liệu phụ không tham gia slideshow hoặc bộ chuyển ảnh trong modal.
+    const galleryItems=[{
+        imageUrl:item.image,title:publicPersonName,content:item.content||'',year:''
+    }];
+    state.mesh.userData={
+        type:'artifact',displayMode:'person-profile',color:BLUE,
+        title:publicPersonName,year:'',zoneName:'',
+        content:item.content||'',source:item.source,imageUrl:item.image,
+        galleryItems,interactionDistance:11
+    };
+    state.buttons.forEach(button=>{
+        button.userData.title=`${button.userData.direction<0?'Nhân vật trước':'Nhân vật tiếp theo'} · ${publicPersonName}`;
+    });
+
+    const image=new Image();
+    image.onload=()=>{
+        if(!zone3PeopleSlideshow||token!==state.renderToken)return;
+        ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,imageBottom);
+        drawCanvasImageContain(ctx,image,0,0,canvas.width,imageBottom);
+        state.texture.needsUpdate=true;
+        framePolicy.invalidate(3);
+    };
+    image.onerror=()=>{
+        if(!zone3PeopleSlideshow||token!==state.renderToken)return;
+        ctx.fillStyle='#f5f8fb';ctx.fillRect(0,0,canvas.width,imageBottom);
+        ctx.fillStyle='#8f1f2b';ctx.font=`800 30px ${UI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('KHÔNG TẢI ĐƯỢC ẢNH CHÂN DUNG',canvas.width/2,imageBottom/2);
+        state.texture.needsUpdate=true;
+    };
+    image.src=item.image;
+}
+
+function navigateZone3Person(direction,manual=false){
+    const state=zone3PeopleSlideshow;
+    if(!state||!direction)return;
+    state.index=(state.index+direction+ZONE3_PEOPLE.length)%ZONE3_PEOPLE.length;
+    state.nextAt=performance.now()+(manual?ZONE3_PEOPLE_MANUAL_PAUSE_MS:ZONE3_PEOPLE_SLIDE_MS);
+    renderZone3PersonSlide();
+    framePolicy.invalidate(4);
+}
+
+function updateZone3PeopleSlideshow(timeMs){
+    const state=zone3PeopleSlideshow;
+    if(!state)return;
+    if(isInteractionModalOpen()){
+        state.nextAt=timeMs+3000;
+        return;
+    }
+    if(hoveredObject===state.mesh||state.buttons.includes(hoveredObject)){
+        state.nextAt=timeMs+1000;
+        return;
+    }
+    if(timeMs>=state.nextAt)navigateZone3Person(1,false);
+}
+
+function createZone3PeopleSlideshow(zone){
+    const radius=WALL_MOUNT_R-.1;
+    // Dịch cụm nhân vật về phía trái của mặt tường, tách khỏi cột ảnh cuối
+    // của Khu vực 2 và vẫn chừa lề an toàn ở đầu cung trưng bày.
+    const centerFraction=.80;
+    const point=zonePoint(zone,centerFraction,radius);
+    const canvas=document.createElement('canvas');canvas.width=1280;canvas.height=800;
+    const texture=createSRGBCanvasTexture(canvas);texture.anisotropy=4;
+    const width=8.2,height=5.12;
+    const geometry=new THREE.PlaneGeometry(width,height,64,1);
+    bendGeometry(geometry,radius);
+    const mesh=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({
+        map:texture,roughness:.58,emissive:0xffffff,emissiveMap:texture,emissiveIntensity:.16
+    }));
+    mesh.position.set(point.x,3.90,point.z);mesh.rotation.y=faceCoreRotY(point.angle);mesh.renderOrder=3;
+    scene.add(mesh);interactiveObjects.push(mesh);
+
+    const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,18),new THREE.LineBasicMaterial({
+        color:0xffcf62,transparent:true,opacity:.9,toneMapped:false
+    }));
+    outline.position.copy(mesh.position);outline.rotation.copy(mesh.rotation);outline.renderOrder=4;scene.add(outline);
+
+    const zoneArcLength=Math.abs(zone.a1-zone.a0)*radius;
+    const buttons=[-1,1].map(direction=>{
+        const fraction=centerFraction+direction*(width/2-.38)/zoneArcLength;
+        const p=zonePoint(zone,fraction,radius-.035);
+        const geo=new THREE.PlaneGeometry(.52,.78,12,1);bendGeometry(geo,radius);
+        // Bề mặt cong làm texture bị lật theo hướng nhìn, nên ký hiệu nguồn cần
+        // đảo lại để phía trái luôn là mũi tên lùi và phía phải là mũi tên tiến.
+        const arrowTexture=createZone3PersonArrowTexture(direction<0?'›':'‹');
+        const button=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
+            map:arrowTexture,transparent:true,roughness:.4,
+            emissive:0xffffff,emissiveMap:arrowTexture,emissiveIntensity:.2
+        }));
+        button.position.set(p.x,4.06,p.z);button.rotation.y=faceCoreRotY(p.angle);button.renderOrder=7;
+        button.userData={type:'zone3-person-nav',direction,title:direction<0?'Nhân vật trước':'Nhân vật tiếp theo',interactionDistance:11};
+        scene.add(button);interactiveObjects.push(button);return button;
+    });
+    zone3PeopleSlideshow={canvas,ctx:canvas.getContext('2d'),texture,mesh,buttons,index:0,nextAt:performance.now()+ZONE3_PEOPLE_SLIDE_MS,renderToken:0};
+    renderZone3PersonSlide();
 }
 
 function buildZone3_NCKH() {
@@ -3156,69 +3845,74 @@ function buildZone3_NCKH() {
         bgColor: '#006ea8', textColor: '#ffffff', w: 9.4, h: .82
     });
 
-    // Bản LTR phản chiếu fraction khi đặt vật thể: mốc cũ xuất hiện bên trái
-    // và các mốc thời gian tăng dần về phía phải theo chiều tham quan mới.
-    ZONE3_TIMELINE.forEach(segment => {
-        if (segment.kind === 'transition') createZone3TimelineSegment(Z, segment.start, segment.end, segment.y0, segment.y1);
-        else createZone3TimelineSegment(Z, segment.start, segment.end, segment.y);
-    });
-    createZone3TimelineNode(Z, .93, 1.55, '1951');
-    createZone3TimelineNode(Z, .52, 1.55, '2011');
-    createZone3TimelineNode(Z, .41, 6.25, '2022');
-    createZone3TimelineNode(Z, .07, 6.25, '2026');
-
-    const peopleTitle = zonePoint(Z, .74, WALL_MOUNT_R - .1);
+    const peopleTitle = zonePoint(Z, .80, WALL_MOUNT_R - .1);
     createReferenceTitle({
-        x: peopleTitle.x, z: peopleTitle.z, y: 8.0, rotY: faceCoreRotY(peopleTitle.angle),
-        text: 'KHU VỰC 1: CÁC NHÂN VẬT TIÊU BIỂU TRONG NGHIÊN CỨU KHOA HỌC',
+        x: peopleTitle.x, z: peopleTitle.z, y: 6.94, rotY: faceCoreRotY(peopleTitle.angle),
+        text: 'CÁC NHÂN VẬT TIÊU BIỂU TRONG NGHIÊN CỨU KHOA HỌC',
         color: BLUE, curveRadius: WALL_MOUNT_R - .1, bgColor: '#0092df', textColor: '#ffffff',
-        fontSize: 28, w: 8.2, h: .55
+        fontSize: 32, w: 8.8, h: .78
     });
-    const peopleFractions = [.91, .82, .73, .64, .55];
-    ZONE3_PEOPLE.forEach((item, index) => {
-        const row = index % 2;
-        const fraction = peopleFractions[Math.floor(index / 2)];
-        const y = row === 0 ? 6.55 : 3.65;
-        createZone3SourceCard({ zone: Z, item, fraction, y, width: 1.58, height: 1.72,
-            radius: WALL_MOUNT_R - .1, zoneName: `${Z.name} · Khu vực 1`,
-            captionHeight: .72, captionFontSize: 20 });
-        if (row === 1) createZone3TimelineConnector(Z, fraction, 1.61, y - 1.26);
-    });
+    createZone3PeopleSlideshow(Z);
 
-    const activityTitle = zonePoint(Z, .24, WALL_MOUNT_R - .1);
+    const activityTitle = zonePoint(Z, .335, WALL_MOUNT_R - .1);
     createReferenceTitle({
-        x: activityTitle.x, z: activityTitle.z, y: 7.65, rotY: faceCoreRotY(activityTitle.angle),
-        text: 'KHU VỰC 2: HÌNH ẢNH VỀ CÁC HOẠT ĐỘNG NGHIÊN CỨU KHOA HỌC CỦA CÁN BỘ VÀ SINH VIÊN',
+        x: activityTitle.x, z: activityTitle.z, y: 6.42, rotY: faceCoreRotY(activityTitle.angle),
+        text: 'HOẠT ĐỘNG NGHIÊN CỨU KHOA HỌC CỦA CÁN BỘ VÀ SINH VIÊN',
         color: BLUE, curveRadius: WALL_MOUNT_R - .1, bgColor: '#0092df', textColor: '#ffffff',
-        fontSize: 25, w: 7.4, h: .55
+        fontSize: 30, w: 12.2, h: .72
     });
-    const activityFractions = [.39, .31, .23, .15, .075];
-    ZONE3_ACTIVITIES.forEach((item, index) => {
-        const row = index % 2;
-        const fraction = activityFractions[Math.floor(index / 2)];
-        const y = row === 0 ? 4.88 : 2.27;
-        createZone3SourceCard({ zone: Z, item, fraction, y, width: 1.42, height: 1.18,
-            radius: WALL_MOUNT_R - .1, zoneName: `${Z.name} · Khu vực 2`,
-            captionHeight: .9, captionFontSize: 18 });
-        if (row === 0) createZone3TimelineConnector(Z, fraction, 6.19, y + .98);
+    const activityOrder = [
+        'toa-dam-2022','khkt-2023','can-bo-tre-12','mang-luoi-2023','khkt-2025',
+        'nckh-2024','can-bo-tre-13','khkt-2026','nckh-2025','chung-khao-2026'
+    ];
+    const chronologicalActivities = activityOrder.map(id => ZONE3_ACTIVITIES.find(item => item.id === id)).filter(Boolean);
+    chronologicalActivities.forEach((item, index) => {
+        // Đọc theo thời gian: 5 hoạt động đầu ở hàng trên, 5 hoạt động sau ở hàng dưới.
+        const row = Math.floor(index / 5);
+        const column = index % 5;
+        // Gom toàn bộ 5 cột vào phía trong: mép gần cửa được đẩy lùi rõ rệt,
+        // đồng thời khoảng hở giữa các ảnh chỉ còn một nhịp nhỏ đồng đều.
+        const fraction = .145 + column * (.37 / 4);
+        const captionBottom = row === 0 ? 3.72 : 1.05;
+        createZone3UnifiedCard({zone:Z,item,fraction,captionBottom,width:3,
+            radius:WALL_MOUNT_R-.1,zoneName:`${Z.name} · Khu vực 2`,
+            captionHeight:.68,fontSize:19});
     });
 
     const innerDisplayR = R_CORE + WALL_THICK / 2 + .12;
-    const innerTitle = zonePoint(Z, .5, innerDisplayR);
+    const innerTitle = wallZonePoint(Z, .5, innerDisplayR, true);
     createReferenceTitle({
-        x: innerTitle.x, z: innerTitle.z, y: 8.65, rotY: faceCoreRotY(innerTitle.angle) + Math.PI,
-        text: 'KHU VỰC 3: THÀNH TÍCH TIÊU BIỂU TRONG NHỮNG NĂM GẦN ĐÂY',
+        x: innerTitle.x, z: innerTitle.z, y: 6.85, rotY: faceCoreRotY(innerTitle.angle) + Math.PI,
+        text: 'THÀNH TÍCH TIÊU BIỂU TRONG NHỮNG NĂM GẦN ĐÂY',
         color: BLUE, curveRadius: -innerDisplayR, bgColor: '#0092df', textColor: '#ffffff',
-        fontSize: 27, w: 6.9, h: .58
+        fontSize: 29, w: 11.2, h: .82
     });
-    const achievementFractions = [.88, .70, .51, .32, .14];
-    ZONE3_ACHIEVEMENTS.forEach((item, index) => {
-        const row = index % 2;
-        const fraction = achievementFractions[Math.floor(index / 2)];
-        const y = row === 0 ? 6.65 : 3.42;
-        createZone3SourceCard({ zone: Z, item, fraction, y, width: 1.48, height: 1.48,
-            radius: innerDisplayR, zoneName: `${Z.name} · Khu vực 3`, faceInnerWall: true,
-            captionHeight: .9, captionFontSize: 18 });
+    const achievementOrder = [
+        'giai-thuong-2018-2024','toan-2024','nguyen-nguyen-phu','vat-ly-2025','stem-2025',
+        'thanh-tich-2025','visef-2026','sinh-hoc-2026','nhat-nam-2026','nckh-2026'
+    ];
+    const chronologicalAchievements = achievementOrder
+        .map(id => ZONE3_ACHIEVEMENTS.find(item => item.id === id))
+        .filter(Boolean);
+    const innerArcLength=Math.abs(Z.a1-Z.a0)*innerDisplayR;
+    chronologicalAchievements.forEach((item, index) => {
+        // Mặt trong có hướng nhìn ngược mặt ngoài, vì vậy phân số giảm dần
+        // để người đứng trong hành lang vẫn đọc trái → phải, hàng trên trước.
+        const row = Math.floor(index / 5);
+        const column = index % 5;
+        // Thu gọn thẻ và chừa khe thật giữa các cột. Hai hàng
+        // có dải cao riêng nên ảnh dù khác tỷ lệ cũng không chồng nhau.
+        const fraction = .82 - column * (.64 / 4);
+        const captionBottom = row === 0 ? 3.55 : .55;
+        if(item.id==='nhat-nam-2026'){
+            createZone3UnifiedCard({zone:Z,item,fraction,captionBottom,width:2.7,
+                radius:innerDisplayR,zoneName:Z.name,faceInnerWall:true,
+                fontSize:18,layout:'horizontal',height:2.05});
+            return;
+        }
+        createZone3UnifiedCard({zone:Z,item,fraction,captionBottom,width:2.7,
+            radius:innerDisplayR,zoneName:Z.name,faceInnerWall:true,
+            captionHeight:.62,fontSize:18});
     });
 }
 
@@ -3241,7 +3935,7 @@ function buildZone2_TinhNguyenVaSuPham() {
     const innerDisplayR = innerWallSurfaceR + 0.16;
 
     // Bản đồ nhiệt chuyển sang mặt ngoài của tường lõi, hướng ra vành tham quan.
-    const heatmapTitleP = zonePoint(Z, 0.5, innerDisplayR);
+    const heatmapTitleP = wallZonePoint(Z, 0.5, innerDisplayR, true);
     createReferenceTitle({
         x: heatmapTitleP.x, z: heatmapTitleP.z, y: 8.15,
         rotY: faceCoreRotY(heatmapTitleP.angle) + Math.PI,
@@ -3251,84 +3945,54 @@ function buildZone2_TinhNguyenVaSuPham() {
     });
 
     const mapDisplayR = innerWallSurfaceR + 0.025;
-    const mapP = zonePoint(Z, 0.75, mapDisplayR);
+    const mapP = wallZonePoint(Z, 0.75, mapDisplayR, true);
     createHeatmapPanel(mapP, Z, { faceInnerWall: true, radius: mapDisplayR });
 
     // Dịch TV về gần bản đồ nhưng vẫn giữ khe thoáng để hai khối không chạm nhau.
-    const tvP = zonePoint(Z, 0.30, innerDisplayR);
+    const tvP = wallZonePoint(Z, 0.30, innerDisplayR, true);
     createHeatmapTV(tvP, Z, { faceInnerWall: true, radius: innerDisplayR });
 
-    // Hai khung sáng thu gọn; bảng tên nằm giữa nẹp trên của từng khu.
+    // Hai khung vàng giữ nguyên, nhưng không gắn thêm bảng tên lên khung.
     const lightFrame = {
-        zone: Z, radius: WALL_MOUNT_R - 0.055, bottom: 0.72, top: 7.02,
+        zone: Z, radius: WALL_MOUNT_R - 0.055, bottom: 0.62, top: 7.12,
         showGlass: false, railColor: 0xffcf62, emissiveIntensity: 1.15, railWidth: 0.048
     };
-    createCurvedGlassZoneFrame({ ...lightFrame, start: 0.070, end: 0.470 });
-    createCurvedGlassZoneFrame({ ...lightFrame, start: 0.530, end: 0.930 });
-    createZone2LightFrameLabel(Z, 0.27, content.loveHeading, 3.45);
-    createZone2LightFrameLabel(Z, 0.73, content.panoramaHeading, 3.20);
+    createCurvedGlassZoneFrame({ ...lightFrame, start: 0.040, end: 0.485 });
+    createCurvedGlassZoneFrame({ ...lightFrame, start: 0.515, end: 0.960 });
+    createZone2LightFrameLabel(Z, 0.2625, content.loveHeading, 3.45, lightFrame.top);
+    createZone2LightFrameLabel(Z, 0.7375, content.panoramaHeading, 3.20, lightFrame.top);
 
-    // Bức tường yêu thương chuyển sang nửa đầu của tường ngoài.
-    createEventStoryWall({
+    // Từng ảnh là một hiện vật độc lập; không còn cụm ghép hoặc bảng tiêu đề.
+    createLoosePhotoWall({
         zone: Z,
         events: content.loveEvents,
-        documents: ZONE2_PHOTO_ONLY ? [] : content.loveDocuments,
-        historicalCards: ZONE2_PHOTO_ONLY ? [] : content.loveHistoricalCards,
-        documentIndexes: [1],
         radius: WALL_MOUNT_R,
-        // Fraction được phản chiếu ở bản LTR: nội dung đầu tiên nằm bên trái.
-        adaptiveColumns: true,
-        columnRange: [0.125, 0.420],
+        range: [0.060, 0.465],
         zoneName: 'Cụm 2 · Bức tường Trao yêu thương',
         accent: 0xb21f35,
-        faceInnerWall: false,
-        columnRhythm: [
-            { topDrop: 0.26, bottomLift: 0.06, widthScale: 0.94 },
-            { topDrop: 0.00, bottomLift: 0.22, widthScale: 1.05 },
-            { topDrop: 0.18, bottomLift: 0.00, widthScale: 0.97 },
-            { topDrop: 0.34, bottomLift: 0.14, widthScale: 1.06 },
-            { topDrop: 0.08, bottomLift: 0.27, widthScale: 0.95 },
-            { topDrop: 0.24, bottomLift: 0.08, widthScale: 1.02 }
-        ],
-        top: 6.55,
-        bottom: 1.02
+        top: 6.82,
+        bottom: 0.92
     });
 
-    // Mặt tường ngoài: masonry biến thiên theo lượng ảnh thực tế;
-    // mỗi cụm là một khối chữ nhật kín và các mốc tăng dần từ trái sang phải.
-    createEventStoryWall({
+    createLoosePhotoWall({
         zone: Z,
         events: content.panoramaEvents,
-        documents: ZONE2_PHOTO_ONLY ? [] : content.panoramaDocuments,
-        historicalCards: ZONE2_PHOTO_ONLY ? [] : content.panoramaHistoricalCards,
-        documentIndexes: [1, 5],
         radius: WALL_MOUNT_R,
-        // Fraction được phản chiếu: mốc cũ ở bên trái, mốc mới phát triển sang phải.
-        adaptiveColumns: true,
-        columnRange: [0.585, 0.880],
+        range: [0.535, 0.940],
         zoneName: Z.name,
         accent: GREEN,
-        faceInnerWall: false,
-        columnRhythm: [
-            { topDrop: 0.04, bottomLift: 0.24, widthScale: 1.02 },
-            { topDrop: 0.20, bottomLift: 0.06, widthScale: 0.94 },
-            { topDrop: 0.08, bottomLift: 0.18, widthScale: 1.05 },
-            { topDrop: 0.29, bottomLift: 0.00, widthScale: 0.95 },
-            { topDrop: 0.13, bottomLift: 0.16, widthScale: 1.01 },
-            { topDrop: 0.25, bottomLift: 0.07, widthScale: 0.98 }
-        ],
-        top: 6.55,
-        bottom: 1.02
+        top: 6.82,
+        bottom: 0.92
     });
 
 }
 
-function createZone2LightFrameLabel(zone, fraction, text, width) {
+function createZone2LightFrameLabel(zone, fraction, text, width, y = 7.02) {
     // Đẩy bảng tên ra trước nẹp một lớp nhỏ để tránh bị tường/nẹp che hoặc z-fighting.
     const radius = WALL_MOUNT_R - 0.095;
     const point = zonePoint(zone, fraction, radius);
     createReferenceTitle({
-        x: point.x, z: point.z, y: 7.02,
+        x: point.x, z: point.z, y,
         rotY: faceCoreRotY(point.angle), text, color: GOLD,
         curveRadius: radius, bgColor: ZONE2_CONTENT_BLUE, textColor: '#ffffff',
         fontSize: 34, w: width, h: 0.43
@@ -3398,6 +4062,112 @@ function eventVisualClusters(events, maxPhotos = 6) {
             });
         }
         return chunks;
+    });
+}
+
+// Trải toàn bộ ảnh của một bức tường thành một gallery tự do. Số hàng được
+// chọn từ kích thước thật của ảnh và vùng bên trong khung vàng, không ấn định
+// trước. Ảnh đầu/cuối vẫn đi theo trình tự dữ liệu; từng ảnh giữ nguyên tỷ lệ.
+function createLoosePhotoWall({
+    zone, events, radius, range, zoneName, accent, top, bottom
+}) {
+    const photos = events.flatMap(eventItem => eventItem.photos);
+    if (!photos.length) return;
+
+    const [rangeMin, rangeMax] = range;
+    const arcPerFraction = Math.abs(zone.a1 - zone.a0) * radius;
+    const availableWidth = (rangeMax - rangeMin) * arcPerFraction;
+    const availableHeight = top - bottom;
+    const horizontalGap = 0.09;
+    const verticalGap = 0.09;
+    const ratios = photos.map(item => THREE.MathUtils.clamp(item.aspectRatio || 1.5, 0.42, 3.4));
+
+    const makeRows = rowCount => {
+        const remainingWidths = new Array(photos.length + 1).fill(0);
+        for (let index = photos.length - 1; index >= 0; index -= 1) {
+            remainingWidths[index] = remainingWidths[index + 1] + ratios[index];
+        }
+        const rows = [];
+        let cursor = 0;
+        for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
+            const rowsLeft = rowCount - rowIndex;
+            const minimumAfter = rowsLeft - 1;
+            const targetWidth = remainingWidths[cursor] / rowsLeft;
+            const row = [];
+            let width = 0;
+            while (cursor < photos.length - minimumAfter) {
+                const nextWidth = ratios[cursor];
+                if (row.length && Math.abs(targetWidth - width) < Math.abs(targetWidth - width - nextWidth)) break;
+                row.push(cursor);
+                width += nextWidth;
+                cursor += 1;
+            }
+            if (!row.length && cursor < photos.length) row.push(cursor++);
+            rows.push(row);
+        }
+        return rows;
+    };
+
+    let bestLayout = null;
+    const maxRows = Math.min(10, Math.max(2, Math.ceil(photos.length / 3)));
+    for (let rowCount = 2; rowCount <= maxRows; rowCount += 1) {
+        const rows = makeRows(rowCount);
+        // Mỗi hàng được "justify" độc lập: chiều cao được suy ra từ tổng tỷ
+        // lệ ảnh để cả mép trái lẫn mép phải chạm đúng giới hạn khung vàng.
+        const rowHeights = rows.map(row => {
+            const ratioTotal = row.reduce((sum, photoIndex) => sum + ratios[photoIndex], 0);
+            return (availableWidth - horizontalGap * Math.max(0, row.length - 1)) / ratioTotal;
+        });
+        const photosHeight = rowHeights.reduce((sum, value) => sum + value, 0);
+        const justifiedVerticalGap = rowCount > 1
+            ? (availableHeight - photosHeight) / (rowCount - 1)
+            : 0;
+        const averageHeight = photosHeight / rowCount;
+        const heightVariance = rowHeights.reduce((sum, value) =>
+            sum + Math.pow((value - averageHeight) / averageHeight, 2), 0) / rowCount;
+        const gapOutsidePreferredRange = justifiedVerticalGap < 0.045
+            ? 0.045 - justifiedVerticalGap
+            : justifiedVerticalGap > 0.18
+                ? justifiedVerticalGap - 0.18
+                : 0;
+        const singletonPenalty = rows.filter(row => row.length === 1).length * 0.35;
+        const score = -gapOutsidePreferredRange * 20
+            - Math.abs(justifiedVerticalGap - verticalGap) * 2
+            - heightVariance
+            - singletonPenalty;
+        if (!bestLayout || score > bestLayout.score) {
+            bestLayout = { rows, rowHeights, verticalGap: justifiedVerticalGap, score };
+        }
+    }
+
+    const { rows, rowHeights, verticalGap: fittedVerticalGap } = bestLayout;
+
+    let rowTop = top;
+    rows.forEach((row, rowIndex) => {
+        const photoHeight = rowHeights[rowIndex];
+        let xCursor = 0;
+        row.forEach((photoIndex, itemIndex) => {
+            const item = photos[photoIndex];
+            const photoWidth = ratios[photoIndex] * photoHeight;
+            const y = rowTop - photoHeight / 2;
+
+            // Bản LTR phản chiếu fraction; đi từ rangeMax xuống rangeMin sẽ
+            // hiển thị ảnh từ trái sang phải theo đúng thứ tự dữ liệu.
+            const fraction = rangeMax - (xCursor + photoWidth / 2) / arcPerFraction;
+            const point = zonePoint(zone, fraction, radius);
+            createWallPhotoTile({
+                x: point.x, z: point.z, y,
+                rotY: faceCoreRotY(point.angle),
+                w: photoWidth, h: photoHeight,
+                accent, title: item.title, year: item.year,
+                zoneName, content: item.title, source: item.source,
+                curveRadius: radius, imageUrl: item.imageUrl,
+                photoDepth: 0.13, solidBacking: true,
+                backingColor: 0x0092df, displayMode: 'photo-caption'
+            });
+            xCursor += photoWidth + (itemIndex < row.length - 1 ? horizontalGap : 0);
+        });
+        rowTop -= photoHeight + fittedVerticalGap;
     });
 }
 
@@ -3716,7 +4486,7 @@ function createMixedMasonryStoryWall({
             }));
             moduleItem.photos.forEach((item, index) => {
                 const slot = slots[index];
-                const point = zonePoint(zone, columnCenters[columnIndex] + slot.x / zoneArcLength, radius);
+                const point = wallZonePoint(zone, columnCenters[columnIndex] + slot.x / zoneArcLength, radius, faceInnerWall);
                 createWallPhotoTile({
                     x: point.x, z: point.z, y: photoBottom + slot.y + slot.h / 2,
                     rotY: faceCoreRotY(point.angle) + (faceInnerWall ? Math.PI : 0),
@@ -3727,10 +4497,11 @@ function createMixedMasonryStoryWall({
                     galleryItems, galleryIndex: index
                 });
             });
-            const labelPoint = zonePoint(
+            const labelPoint = wallZonePoint(
                 zone,
                 columnCenters[columnIndex] + photoContentCenter / zoneArcLength,
-                radius
+                radius,
+                faceInnerWall
             );
             createStoryCaption({
                 x: labelPoint.x, z: labelPoint.z, y: clusterBottom + captionHeight / 2,
@@ -3769,10 +4540,11 @@ function createMasonryStoryWall({
 
             groupPhotos.forEach((item, index) => {
                 const slot = slots[index];
-                const point = zonePoint(
+                const point = wallZonePoint(
                     zone,
                     columnCenters[columnIndex] + slot.x / zoneArcLength,
-                    radius
+                    radius,
+                    faceInnerWall
                 );
                 createWallPhotoTile({
                     x: point.x, z: point.z,
@@ -3787,7 +4559,7 @@ function createMasonryStoryWall({
                 });
             });
 
-            const labelPoint = zonePoint(zone, columnCenters[columnIndex], radius);
+            const labelPoint = wallZonePoint(zone, columnCenters[columnIndex], radius, faceInnerWall);
             createStoryCaption({
                 x: labelPoint.x, z: labelPoint.z,
                 y: clusterBottom + captionHeight / 2,
@@ -3936,7 +4708,7 @@ function createStoryPhotoClusters({
                 return;
             }
             const slotX = profile.mirror ? -slot.x : slot.x;
-            const point = zonePoint(zone, center + slotX * spread * profile.spread, radius);
+            const point = wallZonePoint(zone, center + slotX * spread * profile.spread, radius, faceInnerWall);
             createWallPhotoTile({
                 x: point.x, z: point.z, y: slot.y + profile.y,
                 rotY: faceCoreRotY(point.angle) + (faceInnerWall ? Math.PI : 0),
@@ -3948,7 +4720,7 @@ function createStoryPhotoClusters({
             });
         });
 
-        const labelPoint = zonePoint(zone, center, radius + (faceInnerWall ? 0.01 : -0.01));
+        const labelPoint = wallZonePoint(zone, center, radius + (faceInnerWall ? 0.01 : -0.01), faceInnerWall);
         createStoryCaption({
             x: labelPoint.x, z: labelPoint.z, y: profile.captionY,
             rotY: faceCoreRotY(labelPoint.angle) + (faceInnerWall ? Math.PI : 0),
@@ -4054,9 +4826,10 @@ function createStoryCaption(cfg) {
     }));
     panel.position.set(cfg.x, cfg.y, cfg.z);
     panel.rotation.y = cfg.rotY;
-    createLayeredRaisedSurface({
-        geometry, texture, position: cfg, rotationY: cfg.rotY,
-        tint: 0x8ebbd1, depth: .09, layers: 6
+    createSolidPhotoBacking({
+        w: cfg.w, h: cfg.h, curveRadius: cfg.curveRadius,
+        position: cfg, rotationY: cfg.rotY, depth: .09,
+        color: 0x0092df, faceZ: 0
     });
     scene.add(panel);
 }
@@ -4612,7 +5385,7 @@ function renderHeatmapActivity(activity, extra = {}) {
     heatmapCurrentImageIndex = Math.min(heatmapCurrentImageIndex, Math.max(0, mediaItems.length - 1));
     const currentMedia = mediaItems[heatmapCurrentImageIndex];
     heatmapDisplayedActivity = activity;
-    updateHeatmapTV(activity.title, activity.summary, '#0092df', {
+    updateHeatmapTV(currentMedia?.title || activity.title, currentMedia ? '' : activity.summary, '#0092df', {
         ...extra,
         place: activity.place,
         date: activity.date,
@@ -4620,7 +5393,8 @@ function renderHeatmapActivity(activity, extra = {}) {
         imagePosition: mediaItems.length > 1 ? `${heatmapCurrentImageIndex + 1}/${mediaItems.length}` : '',
         hasPreviousImage: heatmapCurrentImageIndex > 0,
         hasNextImage: heatmapCurrentImageIndex < mediaItems.length - 1,
-        type: activity.type
+        type: activity.type,
+        highlights: activity.highlights
     });
 }
 
@@ -4675,11 +5449,11 @@ function handleHeatmapTVClick(uv) {
     if (uv && mediaCount > 1) {
         const canvasX = uv.x * heatmapTVCanvas.width;
         const canvasY = (1 - uv.y) * heatmapTVCanvas.height;
-        if (canvasY >= 612 && canvasY <= 676 && canvasX >= 54 && canvasX <= 178) {
+        if (canvasY >= 214 && canvasY <= 310 && canvasX >= 12 && canvasX <= 88) {
             navigateHeatmapImage(-1);
             return;
         }
-        if (canvasY >= 612 && canvasY <= 676 && canvasX >= 390 && canvasX <= 514) {
+        if (canvasY >= 214 && canvasY <= 310 && canvasX >= 1192 && canvasX <= 1268) {
             navigateHeatmapImage(1);
             return;
         }
@@ -4919,98 +5693,101 @@ function drawCanvasImageContain(ctx, image, x, y, width, height) {
     ctx.drawImage(image, x + (width - targetWidth) / 2, y + (height - targetHeight) / 2, targetWidth, targetHeight);
 }
 
+// Giữ trọn ảnh đúng tỷ lệ trên nền trắng sạch, không crop, không làm mờ và
+// không tạo đường viền quanh mép ảnh.
+function drawCanvasImageContainedOnBackdrop(ctx, image, x, y, width, height) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x,y,width,height);
+    ctx.clip();
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(x,y,width,height);
+    drawCanvasImageContain(ctx,image,x,y,width,height);
+    ctx.restore();
+}
+
 function updateHeatmapTV(title, content, colorHex, details = {}) {
     const ctx = heatmapTVCtx; const c = heatmapTVCanvas;
     if (!ctx || !c || !heatmapTVTex) return;
     framePolicy.invalidate(4);
     const renderToken = ++heatmapTVRenderToken;
     const hasImage = Boolean(details.image);
-    const headerHeight = 122;
-    const cardTop = 150;
-    const cardBottom = 682;
-    const cardHeight = cardBottom - cardTop;
-    const imageCard = { x: 38, y: cardTop, w: 492, h: cardHeight };
-    const imageDrawHeight = details.imagePosition ? 436 : 500;
-    const textCard = hasImage
-        ? { x: 554, y: cardTop, w: 688, h: cardHeight }
-        : { x: 38, y: cardTop, w: 1204, h: cardHeight };
-    const textX = textCard.x + 28;
-    const textWidth = textCard.w - 56;
-
-    // Cùng ngôn ngữ với popup Cụm 2: nền xanh pastel, thẻ trắng góc vuông,
-    // tiêu đề xanh nhận diện và chữ xanh đậm dễ đọc.
-    ctx.fillStyle = '#dfeffc'; ctx.fillRect(0, 0, c.width, c.height);
-    ctx.fillStyle = '#0092df'; ctx.fillRect(0, 0, c.width, headerHeight);
-    ctx.fillStyle = '#ffffff'; ctx.font = '900 46px ' + UI_FONT; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(title.toUpperCase(), 48, headerHeight / 2, 1184);
-
-    ctx.fillStyle = 'rgba(255,255,255,.96)';
-    ctx.fillRect(textCard.x, textCard.y, textCard.w, textCard.h);
-    ctx.strokeStyle = '#7fc3ff'; ctx.lineWidth = 3;
-    ctx.strokeRect(textCard.x, textCard.y, textCard.w, textCard.h);
+    const isArticle = details.type === 'article';
+    const imageBottom = 518;
+    ctx.fillStyle='#dfeffc'; ctx.fillRect(0,0,c.width,c.height);
 
     if (hasImage) {
-        ctx.fillStyle = 'rgba(255,255,255,.96)';
-        ctx.fillRect(imageCard.x, imageCard.y, imageCard.w, imageCard.h);
-        ctx.strokeStyle = '#7fc3ff'; ctx.lineWidth = 3;
-        ctx.strokeRect(imageCard.x, imageCard.y, imageCard.w, imageCard.h);
-        ctx.fillStyle = '#eaf4fd'; ctx.fillRect(54, 166, 460, imageDrawHeight);
-        ctx.fillStyle = '#47708f'; ctx.font = '700 24px ' + UI_FONT; ctx.textAlign = 'center';
-        ctx.fillText('ĐANG TẢI ẢNH…', 284, 384);
-    }
+        ctx.fillStyle='#eaf4fd'; ctx.fillRect(0,0,c.width,imageBottom);
+        ctx.fillStyle='#173f60'; ctx.font='700 25px '+UI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('ĐANG TẢI ẢNH…',c.width/2,imageBottom/2);
 
-    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    if (details.province || details.position) {
-        const provinceLabel = details.province?.toUpperCase() || '';
-        const positionLabel = details.position ? `HOẠT ĐỘNG ${details.position}` : '';
-        ctx.font = '800 25px ' + UI_FONT;
-        const provinceW = provinceLabel ? Math.min(ctx.measureText(provinceLabel).width + 32, textWidth * .64) : 0;
-        if (provinceLabel) {
-            ctx.fillStyle = '#a1d2fd'; ctx.fillRect(textX, 178, provinceW, 44);
-            ctx.fillStyle = '#123d65'; ctx.fillText(provinceLabel, textX + 16, 187, provinceW - 32);
+        // Tiêu đề ảnh nguyên văn nằm trong một khung xanh duy nhất, cùng ngôn
+        // ngữ chú thích của modal trên hai bức tường ảnh.
+        ctx.fillStyle='#0092df'; ctx.fillRect(0,imageBottom,c.width,c.height-imageBottom);
+        ctx.textAlign='left'; ctx.textBaseline='top';
+        const caption=String(title||'');
+        const captionWidth=1200;
+        let captionSize=28;
+        let captionLines=[];
+        while(captionSize>=18){
+            ctx.font=`800 ${captionSize}px ${UI_FONT}`;
+            const words=caption.split(/\s+/).filter(Boolean);
+            captionLines=[];
+            let line='';
+            words.forEach(word=>{
+                const candidate=line?`${line} ${word}`:word;
+                if(line&&ctx.measureText(candidate).width>captionWidth){captionLines.push(line);line=word;}
+                else line=candidate;
+            });
+            if(line)captionLines.push(line);
+            const lineHeight=captionSize*1.32;
+            if(captionLines.length*lineHeight<=166)break;
+            captionSize--;
         }
-        if (positionLabel) {
-            ctx.font = '800 22px ' + UI_FONT;
-            const positionW = Math.min(ctx.measureText(positionLabel).width + 28, textWidth - provinceW - 12);
-            const positionX = textX + provinceW + (provinceW ? 12 : 0);
-            ctx.fillStyle = '#0092df'; ctx.fillRect(positionX, 178, positionW, 44);
-            ctx.fillStyle = '#ffffff'; ctx.fillText(positionLabel, positionX + 14, 189, positionW - 28);
+        const captionLineHeight=captionSize*1.32;
+        const captionY=imageBottom+(c.height-imageBottom-captionLines.length*captionLineHeight)/2;
+        ctx.fillStyle='#ffffff'; ctx.font=`800 ${captionSize}px ${UI_FONT}`;
+        captionLines.forEach((line,index)=>ctx.fillText(line,40,captionY+index*captionLineHeight,captionWidth));
+
+        if (details.imagePosition) {
+            ctx.textBaseline='middle'; ctx.textAlign='center'; ctx.font='900 38px '+UI_FONT;
+            ctx.fillStyle=details.hasPreviousImage?'rgba(0,146,223,.92)':'rgba(98,126,145,.54)';
+            ctx.fillRect(12,214,76,96);
+            ctx.fillStyle='#ffffff'; ctx.fillText('‹',50,262);
+            ctx.fillStyle=details.hasNextImage?'rgba(0,146,223,.92)':'rgba(98,126,145,.54)';
+            ctx.fillRect(1192,214,76,96);
+            ctx.fillStyle='#ffffff'; ctx.fillText('›',1230,262);
         }
-    }
-    let metaY = details.province || details.position ? 242 : 184;
-    if (details.place) {
-        ctx.fillStyle = '#174f82'; ctx.font = '800 24px ' + UI_FONT;
-        const placeLines = drawWrappedTop(ctx, `ĐỊA ĐIỂM: ${details.place}`, textX, metaY, textWidth, 33, 2);
-        metaY += placeLines * 33 + 8;
-    }
-    if (details.date) {
-        ctx.fillStyle = '#47708f'; ctx.font = '700 23px ' + UI_FONT;
-        ctx.fillText(`THỜI GIAN: ${details.date}`, textX, metaY, textWidth);
-        metaY += 41;
-    }
-    const contentY = Math.max(metaY + 8, details.province || details.position ? 286 : 218);
-    ctx.fillStyle = '#17314a'; ctx.font = (hasImage ? '500 27px ' : '500 31px ') + UI_FONT;
-    drawWrappedTop(ctx, content, textX, contentY, textWidth, hasImage ? 38 : 44, hasImage ? 7 : 8);
-
-    if (hasImage && details.imagePosition) {
-        ctx.fillStyle = '#d8efff'; ctx.fillRect(54, 612, 460, 54);
-        ctx.font = '900 22px ' + UI_FONT; ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = details.hasPreviousImage ? '#0092df' : '#9bb8c9';
-        ctx.fillRect(54, 612, 124, 54);
-        ctx.fillStyle = '#ffffff'; ctx.fillText('‹', 116, 638);
-        ctx.fillStyle = '#174f82'; ctx.fillText(`ẢNH ${details.imagePosition}`, 284, 638);
-        ctx.fillStyle = details.hasNextImage ? '#0092df' : '#9bb8c9';
-        ctx.fillRect(390, 612, 124, 54);
-        ctx.fillStyle = '#ffffff'; ctx.fillText('›', 452, 638);
-    }
-
-    const publicSource = publicSourceLabel(details.source);
-    const footerText = publicSource ? `NGUỒN: ${publicSource}` : '';
-    if (footerText) {
-        ctx.fillStyle = '#eaf4fd'; ctx.fillRect(textX, 610, textWidth, 48);
-        ctx.fillStyle = '#47708f'; ctx.font = '700 19px ' + UI_FONT; ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle'; ctx.fillText(footerText, textX + 14, 634, textWidth - 28);
+    } else if (isArticle) {
+        ctx.fillStyle='#0092df'; ctx.fillRect(0,0,c.width,112);
+        ctx.fillStyle='#ffffff'; ctx.font='900 40px '+UI_FONT; ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText(title.toUpperCase(),38,56,1204);
+        const highlights=Array.isArray(details.highlights)?details.highlights:[];
+        const cardWidth=highlights.length?Math.min(360,(1188-(highlights.length-1)*18)/highlights.length):0;
+        highlights.forEach((value,index)=>{
+            const x=46+index*(cardWidth+18);
+            ctx.fillStyle='#ffffff'; ctx.fillRect(x,146,cardWidth,128);
+            ctx.strokeStyle='#7fc3ff'; ctx.lineWidth=3; ctx.strokeRect(x,146,cardWidth,128);
+            ctx.fillStyle='#0092df'; ctx.font='900 28px '+UI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(value,x+cardWidth/2,210,cardWidth-24);
+        });
+        ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillStyle='#174f82'; ctx.font='800 24px '+UI_FONT;
+        ctx.fillText([details.place,details.date].filter(Boolean).join('  ·  '),48,312,1184);
+        ctx.fillStyle='#ffffff'; ctx.fillRect(46,360,1188,286);
+        ctx.strokeStyle='#7fc3ff'; ctx.lineWidth=3; ctx.strokeRect(46,360,1188,286);
+        ctx.fillStyle='#17314a'; ctx.font='500 31px '+UI_FONT;
+        drawWrappedTop(ctx,content,78,394,1124,43,5);
+        ctx.fillStyle='#0092df'; ctx.font='800 20px '+UI_FONT;
+        ctx.fillText('BẤM ĐỂ ĐỌC TOÀN BỘ TƯ LIỆU',78,610,500);
+    } else {
+        // Trạng thái hướng dẫn/chọn miền vẫn giữ ngôn ngữ trực quan hiện tại.
+        ctx.fillStyle=colorHex||'#0092df'; ctx.fillRect(0,0,c.width,132);
+        ctx.fillStyle='#ffffff'; ctx.font='900 46px '+UI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(title.toUpperCase(),c.width/2,66,1180);
+        ctx.fillStyle='#ffffff'; ctx.fillRect(48,172,1184,458);
+        ctx.strokeStyle='#7fc3ff'; ctx.lineWidth=3; ctx.strokeRect(48,172,1184,458);
+        ctx.fillStyle='#17314a'; ctx.font='500 35px '+UI_FONT; ctx.textAlign='center'; ctx.textBaseline='top';
+        drawWrappedTop(ctx,content,c.width/2,302,1060,48,5);
     }
     heatmapTVTex.needsUpdate = true;
 
@@ -5018,16 +5795,22 @@ function updateHeatmapTV(title, content, colorHex, details = {}) {
         const image = new Image();
         image.onload = () => {
             if (renderToken !== heatmapTVRenderToken) return;
-            ctx.fillStyle = '#eaf4fd'; ctx.fillRect(54, 166, 460, imageDrawHeight);
-            drawCanvasImageContain(ctx, image, 54, 166, 460, imageDrawHeight);
-            ctx.strokeStyle = '#7fc3ff'; ctx.lineWidth = 3; ctx.strokeRect(54, 166, 460, imageDrawHeight);
+            ctx.fillStyle='#eaf4fd'; ctx.fillRect(0,0,c.width,imageBottom);
+            drawCanvasImageContainedOnBackdrop(ctx,image,0,0,c.width,imageBottom);
+            if (details.imagePosition) {
+                ctx.textBaseline='middle'; ctx.textAlign='center'; ctx.font='900 38px '+UI_FONT;
+                ctx.fillStyle=details.hasPreviousImage?'rgba(0,146,223,.92)':'rgba(98,126,145,.54)';
+                ctx.fillRect(12,214,76,96); ctx.fillStyle='#ffffff'; ctx.fillText('‹',50,262);
+                ctx.fillStyle=details.hasNextImage?'rgba(0,146,223,.92)':'rgba(98,126,145,.54)';
+                ctx.fillRect(1192,214,76,96); ctx.fillStyle='#ffffff'; ctx.fillText('›',1230,262);
+            }
             heatmapTVTex.needsUpdate = true;
         };
         image.onerror = () => {
             if (renderToken !== heatmapTVRenderToken) return;
-            ctx.fillStyle = '#eaf4fd'; ctx.fillRect(54, 166, 460, imageDrawHeight);
-            ctx.fillStyle = '#b42332'; ctx.font = '700 24px ' + UI_FONT; ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle'; ctx.fillText('KHÔNG TẢI ĐƯỢC ẢNH', 284, 384);
+            ctx.fillStyle='#eaf4fd'; ctx.fillRect(0,0,c.width,imageBottom);
+            ctx.fillStyle='#ffcf62'; ctx.font='800 28px '+UI_FONT; ctx.textAlign='center';
+            ctx.textBaseline='middle'; ctx.fillText('KHÔNG TẢI ĐƯỢC ẢNH',c.width/2,290);
             heatmapTVTex.needsUpdate = true;
         };
         image.src = details.image;
@@ -5127,6 +5910,7 @@ function animate() {
     updateVietnamMapLift(delta);
     updateVietnamMapLayout(delta);
     updateHeatmapOverviewSlideshow(time);
+    updateZone3PeopleSlideshow(time);
     updateTopicDoorOpening(topicDoorState, delta);
     const doorTransitionActive = updateTopicDoorTransition(topicDoorState, camera, delta, elFade);
 

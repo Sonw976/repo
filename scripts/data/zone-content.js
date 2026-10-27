@@ -1,5 +1,5 @@
 import { ZONE2_PANORAMA_EVENTS, ZONE2_LOVE_EVENTS, ZONE2_DOCUMENTS, ZONE2_HISTORICAL_CARDS } from './zone2-content.js';
-import { ZONE2_PANORAMA_EVENTS_V2, ZONE2_LOVE_EVENTS_V2 } from './zone2-photo-wall-content.js';
+import { ZONE2_PANORAMA_EVENTS_V4, ZONE2_LOVE_EVENTS_V4 } from './zone2-photo-wall-content-v4.js';
 
 export const ZONE_CONTENT = Object.freeze({
     1: Object.freeze({
@@ -32,13 +32,13 @@ export const ZONE_CONTENT = Object.freeze({
         ])
     }),
     2: Object.freeze({
-        heading: 'DẤU CHÂN TÌNH NGUYỆN & CHẤT SƯ PHẠM',
+        heading: 'DẤU CHÂN TÌNH NGUYỆN',
         panoramaHeading: 'MÙA HÈ TÌNH NGUYỆN',
-        panoramaEvents: ZONE2_PANORAMA_EVENTS_V2,
+        panoramaEvents: ZONE2_PANORAMA_EVENTS_V4,
         panoramaDocuments: ZONE2_DOCUMENTS.panorama,
         panoramaHistoricalCards: ZONE2_HISTORICAL_CARDS.panorama,
         loveHeading: 'SƯ PHẠM TRAO YÊU THƯƠNG',
-        loveEvents: ZONE2_LOVE_EVENTS_V2,
+        loveEvents: ZONE2_LOVE_EVENTS_V4,
         loveDocuments: ZONE2_DOCUMENTS.love,
         loveHistoricalCards: ZONE2_HISTORICAL_CARDS.love
     }),

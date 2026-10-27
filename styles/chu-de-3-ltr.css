@@ -225,6 +225,180 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         box-shadow: none; color: #7c241d; font-size: 28px;
     }
 
+    /* Hồ sơ nhân vật Cụm 3: chân dung bên trái, nội dung đọc bên phải. */
+    #info-panel.person-profile-mode {
+        width: min(1000px, 95vw); height: min(680px, 91vh); max-height: 91vh;
+        box-sizing: border-box; overflow: hidden;
+        display: grid; grid-template-columns: minmax(300px, 40%) minmax(0, 60%);
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        column-gap: 30px; row-gap: 10px; padding: 34px 38px 30px;
+        background: linear-gradient(145deg,#eaf4fd 0%,#fff 48%,#dfeffc 100%);
+        border: 2px solid rgba(0,146,223,.62);
+        box-shadow: 0 30px 90px rgba(5,37,68,.46);
+    }
+    #info-panel.person-profile-mode::before {
+        content:''; position:absolute; left:0; top:0; bottom:0; width:12px; background:#0092df;
+    }
+    #info-panel.person-profile-mode #info-img-container {
+        grid-column:1; grid-row:1 / 3; align-self:stretch;
+        width:100%; min-height:0; margin:0; padding:14px; box-sizing:border-box;
+        display:flex !important; align-items:center; justify-content:center;
+        background:#fff; border:1px solid rgba(0,146,223,.42); box-shadow:0 12px 28px rgba(61,116,166,.14);
+    }
+    #info-panel.person-profile-mode #info-img-container img {
+        width:100%; height:100%; max-width:100%; max-height:58vh; object-fit:contain;
+        border:0 !important; box-shadow:none;
+    }
+    #info-panel.person-profile-mode .info-zone {
+        display:none;
+    }
+    #info-panel.person-profile-mode .info-code { display:none; }
+    #info-panel.person-profile-mode h2 {
+        grid-column:1; grid-row:3; width:100%; max-width:none; margin:0; box-sizing:border-box;
+        padding:13px 16px 14px; color:#fff; background:#0092df;
+        border:1px solid #007ebf; border-left:7px solid #f2c454;
+        font-size:clamp(18px,1.65vw,25px); line-height:1.25; text-align:center;
+        box-shadow:0 7px 18px rgba(0,86,135,.18);
+    }
+    #info-panel.person-profile-mode h2.person-name-layout {
+        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+    }
+    #info-panel.person-profile-mode .person-title-ranks {
+        display:block; width:100%; color:#dff3ff;
+        font-size:.72em; line-height:1.1; letter-spacing:.045em; white-space:nowrap;
+    }
+    #info-panel.person-profile-mode .person-title-name {
+        display:block; width:100%; color:#fff;
+        font-size:1em; line-height:1.18; white-space:nowrap;
+    }
+    #info-panel.person-profile-mode .info-meta {
+        display:none;
+    }
+    #info-panel.person-profile-mode .info-content {
+        grid-column:2; grid-row:1 / 5; min-height:0; overflow-y:auto; margin:0;
+        padding:4px 8px 4px 4px; font-size:17px; line-height:1.7;
+        background:transparent; border:0; box-shadow:none;
+        scrollbar-color:#0092df #eaf4fd;
+    }
+    #info-panel.person-profile-mode .info-content.paragraph-card-list {
+        display:flex; flex-direction:column; gap:13px; white-space:normal; text-align:left;
+    }
+    #info-panel.person-profile-mode .info-paragraph-card {
+        margin:0; padding:17px 19px 18px 22px;
+        color:#17314a; background:rgba(238,248,255,.96);
+        border:1px solid rgba(0,146,223,.3); border-left:6px solid #f2c454;
+        border-radius:4px; box-shadow:0 7px 17px rgba(24,92,139,.1); text-align:left;
+    }
+    #info-panel.person-profile-mode .info-extra {
+        grid-column:1; grid-row:4; width:100%; margin:0;
+    }
+    #info-panel.person-profile-mode .info-gallery-nav { justify-content:center; }
+    #info-panel.person-profile-mode .info-close { z-index:3; }
+
+    /* Hồ sơ hoạt động Khu vực 2: ảnh tư liệu bên trái, nội dung bên phải. */
+    #info-panel.activity-profile-mode {
+        width:min(1120px,95vw); height:min(680px,91vh); max-height:91vh;
+        box-sizing:border-box; overflow:hidden;
+        display:grid; grid-template-columns:minmax(360px,54%) minmax(300px,46%);
+        grid-template-rows:auto auto minmax(0,1fr); column-gap:30px; row-gap:12px;
+        padding:38px 40px 30px;
+        background:linear-gradient(145deg,#eaf4fd 0%,#fff 48%,#dfeffc 100%);
+        border:2px solid rgba(0,146,223,.62); box-shadow:0 30px 90px rgba(5,37,68,.46);
+    }
+    #info-panel.activity-profile-mode::before {
+        content:''; position:absolute; left:0; top:0; bottom:0; width:12px; background:#0092df;
+    }
+    #info-panel.activity-profile-mode .info-zone,
+    #info-panel.activity-profile-mode .info-code { display:none; }
+    #info-panel.activity-profile-mode #info-img-container {
+        grid-column:1; grid-row:1 / 4; width:100%; height:100%; min-height:0;
+        margin:0; padding:14px; box-sizing:border-box; display:flex !important;
+        align-items:center; justify-content:center; background:#fff;
+        border:1px solid rgba(0,146,223,.42); box-shadow:0 12px 28px rgba(61,116,166,.14);
+    }
+    #info-panel.activity-profile-mode #info-img-container img {
+        width:100%; height:100%; max-width:100%; max-height:56vh;
+        object-fit:contain; border:0 !important; box-shadow:none;
+    }
+    #info-panel.activity-profile-mode h2 {
+        grid-column:2; grid-row:1; width:100%; max-width:none; margin:0 42px 0 0;
+        color:#102f62; font-size:clamp(20px,1.75vw,28px); line-height:1.28;
+        text-align:left; text-transform:none; letter-spacing:0;
+    }
+    #info-panel.activity-profile-mode .info-meta {
+        grid-column:2; grid-row:2; justify-self:start; margin:0;
+        color:#fff; background:#0092df; border-left:5px solid #f2c454;
+    }
+    #info-panel.activity-profile-mode .info-content {
+        grid-column:2; grid-row:3; min-height:0; overflow-y:auto; margin:0;
+        padding:4px 8px 4px 4px; font-size:16px; line-height:1.68;
+        background:transparent; border:0; box-shadow:none; scrollbar-color:#0092df #eaf4fd;
+    }
+    #info-panel.activity-profile-mode .info-content.paragraph-card-list {
+        display:flex; flex-direction:column; gap:12px; white-space:normal; text-align:left;
+    }
+    #info-panel.activity-profile-mode .info-paragraph-card {
+        margin:0; padding:16px 18px 17px 21px; color:#17314a;
+        background:rgba(238,248,255,.96); border:1px solid rgba(0,146,223,.3);
+        border-left:6px solid #f2c454; border-radius:4px;
+        box-shadow:0 7px 17px rgba(24,92,139,.1); text-align:left;
+    }
+    #info-panel.activity-profile-mode .info-extra {
+        position:absolute; left:50px; right:calc(46% + 44px); top:50%;
+        z-index:3; margin:0; transform:translateY(-50%); pointer-events:none;
+    }
+    #info-panel.activity-profile-mode .info-gallery-nav.is-arrow-nav {
+        width:100%; display:flex; justify-content:space-between; flex-wrap:nowrap;
+    }
+    #info-panel.activity-profile-mode .info-gallery-nav.is-arrow-nav button {
+        width:44px; height:54px; min-height:54px; padding:0; pointer-events:auto;
+        color:#fff; background:rgba(0,110,168,.9); border:2px solid #f2c454;
+        font:800 30px/1 Arial,sans-serif; box-shadow:0 7px 18px rgba(5,37,68,.28);
+    }
+    #info-panel.activity-profile-mode .info-gallery-nav.is-arrow-nav button:hover {
+        color:#102f62; background:#f2c454;
+    }
+    #info-panel.activity-profile-mode .info-close { z-index:4; }
+
+    @media(max-width:760px){
+        #info-panel.person-profile-mode {
+            width:min(620px,95vw); height:92vh; padding:42px 20px 24px;
+            display:flex; flex-direction:column; gap:10px; overflow-y:auto;
+        }
+        #info-panel.person-profile-mode #info-img-container { min-height:300px; max-height:48vh; }
+        #info-panel.person-profile-mode #info-img-container img { max-height:44vh; }
+        #info-panel.person-profile-mode .info-zone,
+        #info-panel.person-profile-mode h2,
+        #info-panel.person-profile-mode .info-meta,
+        #info-panel.person-profile-mode .info-content,
+        #info-panel.person-profile-mode .info-extra { width:100%; box-sizing:border-box; }
+        #info-panel.person-profile-mode #info-img-container { order:1; }
+        #info-panel.person-profile-mode h2 { order:2; }
+        #info-panel.person-profile-mode .info-content { order:3; }
+        #info-panel.person-profile-mode .info-extra { order:4; }
+        #info-panel.person-profile-mode .info-content { overflow:visible; }
+        #info-panel.person-profile-mode .info-paragraph-card { padding:15px 16px 16px 19px; }
+
+        #info-panel.activity-profile-mode {
+            width:min(620px,95vw); height:92vh; padding:42px 20px 24px;
+            display:flex; flex-direction:column; gap:10px; overflow-y:auto;
+        }
+        #info-panel.activity-profile-mode #info-img-container {
+            order:1; width:100%; min-height:260px; max-height:44vh;
+        }
+        #info-panel.activity-profile-mode #info-img-container img { max-height:40vh; }
+        #info-panel.activity-profile-mode h2 { order:3; width:100%; margin:0; box-sizing:border-box; }
+        #info-panel.activity-profile-mode .info-meta { order:4; }
+        #info-panel.activity-profile-mode .info-content {
+            order:5; width:100%; overflow:visible; box-sizing:border-box;
+        }
+        #info-panel.activity-profile-mode .info-extra {
+            order:2; position:static; width:100%; margin:-48px 0 0;
+            transform:none; pointer-events:none;
+        }
+        #info-panel.activity-profile-mode .info-paragraph-card { padding:15px 16px 16px 19px; }
+    }
+
     /* Modal infographic chỉ giữ ảnh phóng lớn; toàn bộ phần thông tin phụ
        bên phải được ẩn để tránh khoảng trắng và giữ đúng trọng tâm tư liệu. */
     #info-panel.infographic-mode {

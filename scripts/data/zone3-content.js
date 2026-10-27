@@ -1,61 +1,77 @@
-// Nguồn duy nhất: sheet "Chủ đề 3" trong
-// Tài liệu/Phòng Truyền thống số_Bảng tổng hợp tư liệu.xlsx.
+// Nguồn duy nhất: sheet "Chủ đề 3" trong docs/Chủ đề 3.xlsx.
+// Hồ sơ Khu vực 1 nằm tại các dòng 117–126 của bảng tính hiện hành.
 // Không bổ sung nội dung suy diễn. Cột J là ghi chú biên tập nên không xuất hiện trên giao diện.
 
 const ROOT = 'Tư liệu Cụm 3/';
 
-const freezeItems = items => Object.freeze(items.map(item => Object.freeze(item)));
+const CURRENT_ACTIVITY_SHEET_ROWS = Object.freeze({
+  'chung-khao-2026': 128,
+  'khkt-2026': 129,
+  'nckh-2025': 130,
+  'can-bo-tre-13': 131,
+  'khkt-2025': 132,
+  'nckh-2024': 133,
+  'khkt-2023': 134,
+  'mang-luoi-2023': 135,
+  'can-bo-tre-12': 136,
+  'toa-dam-2022': 137
+});
+
+const freezeItems = items => Object.freeze(items.map(item => Object.freeze({
+  ...item,
+  sheetRow: CURRENT_ACTIVITY_SHEET_ROWS[item.id] ?? item.sheetRow
+})));
 
 export const ZONE3_PEOPLE = freezeItems([
   {
-    id: 'dang-thai-mai', sheetRow: 46, period: '1951–1956',
+    id: 'dang-thai-mai', sheetRow: 117, period: '1951–1956',
     title: 'GS. Đặng Thai Mai (1902 - 1984)',
     content: 'Giáo sư Đặng Thai Mai, Nguyên Bộ trưởng Bộ Quốc gia Giáo dục (nay là Bộ Giáo dục và Đào tạo), là một trong những nhà giáo đặt nền móng đầu tiên của Trường Đại học Sư phạm Hà Nội, Giám đốc Trường Dự bị Đại học – Sư phạm Cao cấp (1951 – 1954) và Giám đốc Trường Đại học Sư phạm Văn khoa (1954 – 1956). Ông là nhà lý luận phê bình sắc sảo, có vốn Nho học uyên thâm, am hiểu văn học cổ điển Pháp, văn học hiện đại Trung Quốc, văn học cổ - cận đại Việt Nam. Giáo sư Đặng Thai Mai đã được Nhà nước tặng Huân chương Kháng chiến hạng Nhất, Huân chương Lao động hạng Nhì, Huân chương Hồ Chí Minh, Giải thưởng Hồ Chí Minh (đợt 1) về các công trình nghiên cứu văn học Việt Nam và văn học thế giới.',
     image: `${ROOT}Khu1/1-GS Dang Thai Mai.jpg`, source: 'Lịch sử Trường, lịch sử Đoàn trường, 70 năm trường ĐHSPHN'
   },
   {
-    id: 'le-van-thiem', sheetRow: 47, period: '1951–1956',
+    id: 'le-van-thiem', sheetRow: 118, period: '1951–1956',
     title: 'GS. TSKH. Lê Văn Thiêm (1918 – 1991)',
     content: 'Giáo sư, Tiến sĩ khoa học Lê Văn Thiêm là một trong những nhà giáo đặt nền móng đầu tiên của Trường Đại học Sư phạm Hà Nội, Giám đốc Trường Sư phạm Cao cấp và Trường Khoa học Cơ bản (1951 – 1954), Giám đốc Trường Đại học Sư phạm Khoa học (1954 – 1956). Từ năm 1960 - 1980, Giáo sư Lê Văn Thiêm được cử làm Trưởng ban khoa học cơ bản, Uỷ ban khoa học Nhà nước, rồi Viện trưởng Viện toán học Việt Nam. Giáo sư Lê Văn Thiêm là nhà toán học vĩ đại có công đặt nền móng xây dựng các cơ sở đào tạo sư phạm cao cấp, khoa học cơ bản và nền Toán học hiện đại Việt Nam. Ông là người đầu tiên sáng lập ra Hội toán học Việt Nam và cũng là người đầu tiên mạnh dạn đi vào toán ứng dụng, vận dụng các kiến thức và phương pháp của giải tích phức vào các vấn đề tính dòng chảy, nổ mìn định hướng,… phục vụ sản xuất và chiến đấu trong điều kiện thiếu mọi thứ cho nghiên cứu. Ông đã được Nhà nước trao tặng "Giải thưởng Hồ Chí Minh (đợt 1)" năm 1996 về các công trình nghiên cứu Toán học.',
     image: `${ROOT}_web/le-van-thiem.png`, source: 'Lịch sử Trường, lịch sử Đoàn trường, 70 năm trường ĐHSPHN; https://hnue.edu.vn/tin-tuc/8840/nguoi-con-uu-tu-cua-dong-ho-le-lang-trung-le.html'
   },
   {
-    id: 'nguyen-thuc-hao', sheetRow: 48, period: '1951–1962', title: 'GS. NGND. Nguyễn Thúc Hào (1912 – 2009)',
-    content: 'Giáo sư Nguyễn Thúc Hào là Phó Giám đốc Trường Dự bị Đại học – Sư phạm Cao cấp (1951 – 1954), Phó Giám đốc Trường Đại học Sư phạm Hà Nội (1956 – 1959) và Hiệu trưởng đầu tiên của Phân hiệu Đại học Sư phạm Vinh (1959 – 1962).\nÔng là nhà giáo, nhà toán học có công lớn trong việc xây dựng nền tảng cho nền toán học và nền giáo dục đại học Việt Nam hiện đại. Ông là người thầy trực tiếp giảng dạy, truyền cảm hứng và đào tạo nhiều thế hệ trí thức, nhà khoa học nổi tiếng của đất nước như: Hoàng Tụy, Nguyễn Đình Tứ, Nguyễn Văn Hiệu, Vũ Đình Cự, Nguyễn Văn Đạo, Phan Đình Diệu, Hà Văn Mão, Văn Như Cương...\nGiáo sư Nguyễn Thúc Hào đã được Nhà nước phong tặng danh hiệu "Nhà giáo Nhân dân" (năm 1988) thuộc ngành Toán họcNăm 1988.',
+    id: 'nguyen-thuc-hao', sheetRow: 119, period: '1951–1962', title: 'GS. NGND. Nguyễn Thúc Hào (1912 – 2009)',
+    content: 'Giáo sư Nguyễn Thúc Hào là Phó Giám đốc Trường Dự bị Đại học – Sư phạm Cao cấp (1951 – 1954), Phó Giám đốc Trường Đại học Sư phạm Hà Nội (1956 – 1959) và Hiệu trưởng đầu tiên của Phân hiệu Đại học Sư phạm Vinh (1959 – 1962).\nÔng là nhà giáo, nhà toán học có công lớn trong việc xây dựng nền tảng cho nền toán học và nền giáo dục đại học Việt Nam hiện đại. Ông là người thầy trực tiếp giảng dạy, truyền cảm hứng và đào tạo nhiều thế hệ trí thức, nhà khoa học nổi tiếng của đất nước như: Hoàng Tụy, Nguyễn Đình Tứ, Nguyễn Văn Hiệu, Vũ Đình Cự, Nguyễn Văn Đạo, Phan Đình Diệu, Hà Văn Mão, Văn Như Cương...\nGiáo sư Nguyễn Thúc Hào đã được Nhà nước phong tặng danh hiệu "Nhà giáo Nhân dân" (năm 1988) thuộc ngành Toán học.',
     image: `${ROOT}Khu1/GS NGUYỄN THÚC HÀO.jpg`, source: 'Lịch sử Trường, 70 năm trường ĐHSPHN'
   },
   {
-    id: 'pham-huy-thong', sheetRow: 49, period: '1956–1967', title: 'GS. VS. NGND. Phạm Huy Thông (1916 – 1988)',
+    id: 'pham-huy-thong', sheetRow: 120, period: '1956–1967', title: 'GS. VS. NGND. Phạm Huy Thông (1916 – 1988)',
     content: 'Giáo sư Phạm Huy Thông là Giám đốc (Hiệu trưởng) Trường Đại học Sư phạm Hà Nội suốt 11 năm (1956 – 1967), người gắn liền với những năm tháng định hình diện mạo, giá trị và bản sắc của Nhà trường. Ông là Viện sĩ Viện Hàn lâm Khoa học CHDC Đức, Viện trưởng Viện Khảo cổ học, Phó Chủ nhiệm Ủy ban Khoa học Xã hội Việt Nam; nhà khảo cổ học và nghiên cứu lịch sử – văn hóa tầm vóc quốc tế.\nGiáo sư Phạm Huy Thông đã được Nhà nước truy tặng "Giải thưởng Hồ Chí Minh" (năm 2000) về các công trình nghiên cứu Khảo cổ học và phong tặng danh hiệu "Nhà giáo Nhân dân" (năm 2010).',
     image: `${ROOT}Khu1/Giáo_sư_Phạm_Huy_Thông.jpg`, source: 'Lịch sử Đoàn trường, 70 năm trường ĐHSPHN'
   },
   {
-    id: 'nguyen-canh-toan', sheetRow: 50, period: '1951–1996', title: 'GS. TSKH. NGND. Nguyễn Cảnh Toàn (1926 – 2017)',
+    id: 'nguyen-canh-toan', sheetRow: 121, period: '1951–1996', title: 'GS. TSKH. NGND. Nguyễn Cảnh Toàn (1926 – 2017)',
     content: 'Giáo sư Nguyễn Cảnh Toàn là cán bộ giảng dạy từ thời Sư phạm Cao cấp (1951), Chủ nhiệm Khoa Toán, Hiệu trưởng Trường Đại học Sư phạm Hà Nội II (1967 – 1975) và Thứ trưởng Bộ Giáo dục.\nÔng là nhà toán học tài năng, người khởi xướng phong trào "Học tập theo lối nghiên cứu", tự bồi dưỡng cán bộ cấp I, cấp II và tiên phong chủ xướng mở đường đào tạo tiến sĩ trong nước tại Trường Đại học Sư phạm Hà Nội. Phương châm "Biến quá trình đào tạo thành quá trình tự đào tạo” là một tư tưởng giáo dục mang tính đột phá, gắn liền với tên tuổi của GS. TSKH. NGND. Nguyễn Cảnh Toàn và lịch sử phát triển của Trường Đại học Sư phạm Hà Nội.\nGiáo sư Nguyễn Cảnh Toàn đã được Nhà nước trao tặng "Giải thưởng Hồ Chí Minh" (năm 1996) về Toán học và danh hiệu "Nhà giáo Nhân dân" (năm 1988).',
     image: `${ROOT}Khu1/GS NGUYỄN CẢNH TOÀN.jpeg`, source: 'Lịch sử Trường, lịch sử Đoàn trường, 70 năm trường ĐHSPHN'
   },
   {
-    id: 'duong-trong-bai', sheetRow: 51, period: '1951–2000', title: 'GS. TSKH. NGND. AHLĐ. Dương Trọng Bái (1925 – 2011)',
+    id: 'duong-trong-bai', sheetRow: 122, period: '1951–2000', title: 'GS. TSKH. NGND. AHLĐ. Dương Trọng Bái (1925 – 2011)',
     content: 'Giáo sư Dương Trọng Bái là cán bộ giảng dạy Vật lý nòng cốt từ thời Sư phạm Cao cấp (1951) và Hiệu trưởng Trường Đại học Sư phạm Hà Nội (1975 – 1980). Sau ngày đất nước thống nhất (năm 1975), trên cương vị Hiệu trưởng, ông đã chỉ đạo việc sáp nhập, ổn định tổ chức và điều hành Nhà trường triển khai nhiệm vụ đào tạo hệ Trên đại học (thạc sĩ, tiến sĩ) – trở thành một trong 6 trường đại học đầu tiên trên cả nước mở đường đào tạo sau đại học. Ông là tác giả, chủ biên nhiều bộ giáo trình Vật lý đại học, sách chuyên khảo và tài liệu giảng dạy nền tảng cho nhiều thế hệ sinh viên, nhà nghiên cứu.\nGiáo sư Dương Trọng Bái đã được Nhà nước phong tặng danh hiệu "Anh hùng Lao động" (năm 2000) và "Nhà giáo Nhân dân" (năm 1988).',
     image: `${ROOT}Khu1/GS Dương_Trọng_Bái.jpg`, source: 'Lịch sử Trường, lịch sử Đoàn trường, 70 năm trường ĐHSPHN'
   },
   {
-    id: 'phan-nguyen-hong', sheetRow: 52, period: '1958–2008', title: 'GS.TSKH.NGND Phan Nguyên Hồng (sinh năm 1935)',
+    id: 'phan-nguyen-hong', sheetRow: 123, period: '1958–2008', title: 'GS.TSKH.NGND Phan Nguyên Hồng (sinh năm 1935)',
     content: 'GS.TSKH.NGND Phan Nguyên Hồng là chuyên gia đầu ngành về nghiên cứu hệ sinh thái rừng ngập mặn. Ông là sinh viên Trường Đại học Sư phạm Hà Nội (khoá 1), từ tháng 8/1958, ông giảng dạy tại Bộ môn Thực vật học (tiền thân của Bộ môn Sinh thái học) thuộc Trường Đại học Sư phạm Hà Nội. Ông là một trong hai người Việt Nam đầu tiên bảo vệ thành công luận án Tiến sĩ Khoa học trong nước (1991) tại Trường Đại học Sư phạm Hà Nội; chuyên gia hàng đầu thế giới về hệ sinh thái rừng ngập mặn, là một trong những người sáng lập ra bộ môn nghiên cứu này ở Việt Nam và đã có những đóng góp to lớn trong việc khôi phục, bảo vệ và phát triển rừng ngập mặn.\nGiáo sư Phan Nguyên Hồng là nhà khoa học Việt Nam đầu tiên được trao "Giải thưởng Quốc tế Cosmos" (Nhật Bản, năm 2008) và được Nhà nước phong tặng danh hiệu "Nhà giáo Nhân dân" (năm 1996).',
     image: `${ROOT}Khu1/GS.TSKH.NGND Phan Nguyên Hồng.jpg`, source: 'Lịch sử Trường, lịch sử Đoàn trường, https://bio.hnue.edu.vn/K%E1%BB%89-ni%E1%BB%87m-th%C3%A0nh-l%E1%BA%ADp-Khoa/G%C6%B0%C6%A1ng-m%E1%BA%B7t-nh%C3%A0-gi%C3%A1o/p/gstskhngnd-phan-nguyen-hong-nguoi-tien-phong-va-het-minh-voi-he-sinh-thai-rung-ngap-man-5004'
   },
   {
-    id: 'nguyen-quang-dieu', sheetRow: 53, period: '2001–2011', title: 'GS.TS. Nguyễn Quang Diệu (sinh năm 1974)',
+    id: 'nguyen-quang-dieu', sheetRow: 124, period: '2001–2011', title: 'GS.TS. Nguyễn Quang Diệu (sinh năm 1974)',
     content: 'Giáo sư Nguyễn Quang Diệu là giảng viên Khoa Toán – Tin, Phó Chủ nhiệm Bộ môn Lý thuyết hàm, Trường Đại học Sư phạm Hà Nội.\nÔng bảo vệ thành công luận án Tiến sĩ Toán học chuyên ngành Giải tích phức tại Đại học Toulouse 3 (Cộng hòa Pháp) năm 2000, bảo vệ luận án Habilitation à Diriger des Recherches (HDR) năm 2006 và từng làm thực tập sinh, cộng tác viên khoa học tại Thụy Điển, Hàn Quốc. Ông về nước công tác tại Khoa Toán – Tin, Trường Đại học Sư phạm Hà Nội từ tháng 8/2001. Trong sự nghiệp, ông được bổ nhiệm làm Phó Giáo sư năm 2007 khi mới 33 tuổi (một trong hai PGS trẻ nhất Việt Nam thời điểm đó) và được công nhận danh hiệu "Giáo sư trẻ nhất Việt Nam năm 2011" ở tuổi 37. Ông cũng từng đại diện cho Trường Đại học Sư phạm Hà Nội tham dự Đại hội Tài năng trẻ Việt Nam lần thứ nhất năm 2009.\nGiáo sư Nguyễn Quang Diệu là nhà toán học xuất sắc trong các lĩnh vực Giải tích phức nhiều biến, Lý thuyết đa thế vị và Lý thuyết toán tử; sở hữu hàng chục công trình khoa học công bố trên các tạp chí quốc tế uy tín thuộc danh mục SCI/SCIE, góp phần tiếp nối và phát triển truyền thống nghiên cứu, đào tạo của Trường Đại học Sư phạm Hà Nội.',
     image: `${ROOT}Khu1/GS. TS. Nguyễn Quang Diệu (chân dung).jpg`, gallery: [`${ROOT}Khu1/GS. TS. Nguyễn Quang Diệu.jpg`], source: 'https://hnue.edu.vn/tin-tuc/6786/bao-gdtd-chan-dung-giao-su-tre-nhat-viet-nam-nam-2011-gsts-nguyen-quang-dieu-khoa-toan-tin.html'
   },
   {
-    id: 'pham-hoang-hiep', sheetRow: 54, period: '2011', title: 'GS. TSKH. Phạm Hoàng Hiệp (sinh năm 1982)',
+    id: 'pham-hoang-hiep', sheetRow: 125, period: '2011', title: 'GS. TSKH. Phạm Hoàng Hiệp (sinh năm 1982)',
     content: 'Giáo sư, Tiến sĩ Khoa học Phạm Hoàng Hiệp là cựu sinh viên và nguyên giảng viên thuộc Chi đoàn cán bộ Khoa Toán (Khoa Toán – Tin), Trường Đại học Sư phạm Hà Nội, từng lập "kỷ lục đúp" là Phó giáo sư và Giáo sư trẻ nhất Việt Nam ở tuổi 29 và 35. Năm 2011, ông được trao tặng "Giải thưởng Gương mặt trẻ Thủ đô tiêu biểu", "Giải thưởng Gương mặt trẻ Việt Nam tiêu biểu". Ông là nhà Toán học trong nước đầu tiên có bài đăng trên tạp chí *Acta Mathematica* — tạp chí được xếp hạng cao nhất theo chỉ số ảnh hưởng và chỉ số trích dẫn trong danh mục 302 tạp chí ngành Toán lý thuyết của cơ sở dữ liệu ISI. Trong sự nghiệp nghiên cứu khoa học cơ bản chuyên sâu về Toán học, ông vinh dự được nhận các giải thưởng khoa học uy tín đỉnh cao gồm "Giải thưởng Tạ Quang Bửu" và "Giải thưởng quốc tế Ramanujan" dành cho các nhà toán học trẻ ở các nước đang phát triển.\nÔng là một trong những gương mặt tiêu biểu đại diện cho thế hệ các nhà khoa học trẻ xuất sắc, đóng góp quan trọng cho ngành Toán học và làm rạng danh truyền thống nghiên cứu, đào tạo khoa học của Trường Đại học Sư phạm Hà Nội.',
     image: `${ROOT}Khu1/ GS Phạm Hoàng Hiệp(Chân dung).webp`, gallery: [`${ROOT}Khu1/ GS Phạm Hoàng Hiệp.webp`]
   },
   {
-    id: 'dao-thu-huong', sheetRow: 55, period: '2010', title: 'Đào Thu Hương (Sinh năm 1985)',
+    id: 'dao-thu-huong', sheetRow: 126, period: '2010', title: 'Đào Thu Hương (Sinh năm 1985)',
     content: 'Bà Đào Thu Hương là cựu sinh viên khiếm thị Khóa 56, gương mặt sinh viên tiêu biểu đại diện cho nghị lực phi thường và truyền thống hiếu học của Trường Đại học Sư phạm Hà Nội.\nDù khiếm thị từ năm 10 tuổi, bà đã kiên trì tự học, vượt qua mọi rào cản để xuất sắc tốt nghiệp "Thủ khoa Khoa Tiếng Anh", Trường Đại học Sư phạm Hà Nội. Năm 2010, bà được vinh danh danh hiệu "Tài năng trẻ Trường Đại học Sư phạm Hà Nội", đồng thời trở thành 1 trong 10 "Gương mặt Trẻ Thủ đô tiêu biểu" và vinh dự nhận "Giải thưởng Gương mặt Trẻ Việt Nam tiêu biểu" do Trung ương Đoàn TNCS Hồ Chí Minh trao tặng. Nhờ sự phấn đấu không ngừng nghỉ trên con đường học tập và cống hiến xã hội, bà đã được Tập đoàn Microsoft vinh danh là "Anh hùng thầm lặng" và trở thành Cán bộ Dự án Hòa nhập người khuyết tật của Chương trình Phát triển Liên Hiệp Quốc (UNDP) tại Việt Nam.\nBà là biểu tượng truyền cảm hứng mạnh mẽ nhất của tuổi trẻ Sư phạm về tinh thần "Biến quá trình đào tạo thành tự đào tạo", minh chứng sinh động cho triết lý giáo dục nhân văn và sứ mạng đào tạo con người của Trường Đại học Sư phạm Hà Nội',
     image: `${ROOT}Khu1/Đào Thu Hương - Cô gái khiếm thị duy nhất ở Việt Nam làm việc cho tổ chức UNDP(chân dung).jpg`, gallery: [`${ROOT}Khu1/Đào Thu Hương - Cô gái khiếm thị duy nhất ở Việt Nam làm việc cho tổ chức UNDP.jpg`], source: '70 năm trường ĐHSPHN, https://vov.gov.vn/nguoi-khuyet-tat-va-hanh-trinh-khang-dinh-quyen-tham-chinh-dtnew-1118212?keyDevice=true'
   }
