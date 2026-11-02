@@ -7,19 +7,32 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,900&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./styles/chu-de-3-ltr.css?v=20261026-9">
+<link rel="stylesheet" href="./styles/chu-de-3-ltr.css?v=20261102-45">
+<link rel="stylesheet" href="./styles/room-entry.css?v=20261102-46">
 </head>
-<body data-zone1-layout="editorial-v2" data-zone2-photo-only="true">
+<body data-zone1-layout="editorial-v2" data-zone2-photo-only="true" data-map-theme="province-blue">
 
-<div id="blocker" style="display: flex;">
-    <h1>Chủ đề 3 · Phong trào &amp; Hoạt động tiêu biểu</h1>
-    <p>"Truyền thống được biến thành hành động" — Bảo tàng số Đoàn trường ĐHSP Hà Nội.<br>
-    Không gian được chia làm 3 Cụm: Yêu nước cách mạng, Học tập & NCKH, Dấu chân tình nguyện & Chất Sư phạm.<br><br>
-    <span class="control-key">Giữ chuột trái + kéo</span> để xoay góc nhìn &nbsp;·&nbsp;
-    <span class="control-key">W A S D</span> để di + &nbsp;·&nbsp;
-    <span class="control-key">Bấm</span> vào hiện vật để xem chi tiết.</p>
-    <button class="btn-start" id="btn-start">Bước Vào Không Gian</button>
-</div>
+<section id="blocker" class="room-loading-screen" aria-live="polite" aria-busy="true">
+    <div class="loading-atmosphere" aria-hidden="true"></div>
+    <div class="loading-shell">
+        <header class="loading-header">
+            <div class="loading-brand">
+                <img src="../Chủ đề 5/image/hnue-emblem-cutout.png" alt="Logo Trường Đại học Sư phạm Hà Nội" class="loading-logo loading-logo-hnue">
+                <div>
+                    <p class="loading-eyebrow">KHÔNG GIAN TRUYỀN THỐNG SỐ - HNUE</p>
+                    <h1>Phong trào &amp; Hoạt động tiêu biểu</h1>
+                </div>
+                <img src="../Chủ đề 5/image/youth-union-emblem-cutout.png" alt="Logo Đoàn Thanh niên" class="loading-logo loading-logo-doan">
+            </div>
+        </header>
+        <div class="loading-divider" aria-hidden="true"><span></span></div>
+        <footer class="loading-progress-wrap">
+            <div id="room-load-progress" class="loading-progress-track" role="progressbar" aria-label="Tiến trình tải tài nguyên" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+            <div class="loading-status-row"><span id="room-load-status" role="status">Đang chuẩn bị không gian trưng bày 3D…</span></div>
+            <button class="btn-start enter-room-button" id="btn-start" type="button" disabled><span>VÀO PHÒNG</span><i aria-hidden="true">→</i></button>
+        </footer>
+    </div>
+</section>
 
 <div id="fade-overlay"></div>
 <div id="zone-flash"></div>
@@ -111,6 +124,6 @@
 }
 </script>
 
-<script type="module" src="./scripts/main-ltr.js?v=20261027-26"></script>
+<script type="module" src="./scripts/main-ltr.js?v=20261102-53"></script>
 </body>
 </html>
