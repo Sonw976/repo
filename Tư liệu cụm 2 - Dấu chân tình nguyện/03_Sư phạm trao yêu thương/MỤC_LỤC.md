@@ -8,7 +8,7 @@
 | IMG-004 | `IMG-004.jpg` | Đoàn Thanh niên Trường ĐHSP Hà Nội tổ chức Chương trình Hỗ trợ sinh viên khắc phục hậu quả bão lũ tại khu vực miền Trung, Tây Nguyên năm 2025. |
 | IMG-005 | `IMG-005.jpg` | Sinh viên Trường ĐHSP Hà Nội tham gia Ngày hội hiến máu _Mùa hè nhân ái_ 2026 tại Viện Huyết học - Truyền máu Trung ương (06_2026). |
 | IMG-006 | `IMG-006.jpg` | Lễ trao tặng quà vinh danh Hoa khôi sinh viên Việt Nam 2024 dành cho Trường ĐHSP Hà Nội (31_1_2026). |
-| IMG-007 | `IMG-007.jpg` | Đội sinh viên tình nguyện Khoa Công tác xã hội – Trường Đại học Sư phạm Hà Nội hỗ trợ tổ chức buổi sinh hoạt câu lạc bộ cha mẹ trẻ bại não tại Bệnh viện Nhi Trung ương năm 2025. |
+| IMG-007 | `IMG-007.jpg` | Đội sinh viên tình nguyện Khoa Công tác xã hội – Trường Đại học Sư phạm Hà Nội tại Bệnh viện Nhi Trung ương năm 2025. |
 | IMG-008 | `IMG-008.jpg` | CLB Dạy học tình nguyện trường ĐHSP Hà Nội tổ chức Giải Bóng đá Thanh niên Tình nguyện năm 2023. |
 | IMG-009 | `IMG-009.jpg` | Sinh viên Trường ĐHSP Hà Nội tham gia hoạt động tại Điểm hiến máu Hướng Dương năm 2025. |
 | IMG-010 | `IMG-010.jpg` | Đội Sinh viên tình nguyện trường ĐHSP Hà Nội tổ chức chương trình “Trao gửi yêu thương- Kết nối nụ cười”, trao quà cho bệnh nhi tại Bệnh viện E nhân ngày 1_6_2026. |
