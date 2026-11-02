@@ -740,7 +740,71 @@ function renderInfoTitle(element, title, usePersonLayout = false) {
     element.appendChild(name);
 }
 
+function displayText(value='') {
+    return String(value).replace(/&amp;|&/g,'và')
+        .replace(/[⁄∕]/g,'/').replace(/₀/g,'0').replace(/₁/g,'1').replace(/₂/g,'2')
+        .replace(/₃/g,'3').replace(/₄/g,'4').replace(/₅/g,'5').replace(/₆/g,'6')
+        .replace(/₇/g,'7').replace(/₈/g,'8').replace(/₉/g,'9')
+        .replace(/\b(\d{1,2})-(\d{1,2})-((?:19|20)\d{2})\b/g,'$1/$2/$3')
+        .replace(/\b(0?[1-9]|1[0-2])-((?:19|20)\d{2})\b/g,'$1/$2')
+        .replace(/\s+-\s+\d{1,2}\s*$/u,'').trim();
+}
+function photoGroup(d){
+    const url=d.imageUrl||'';
+    if(url.includes('Ba Sẵn Sàng cột ảnh 1/'))return 'ba-1';
+    if(url.includes('Ba Sẵn Sàng cột ảnh 2/'))return 'ba-2';
+    if(url.includes('Đội 146 ĐHSP Hà Nội tham gia khắc phục'))return 'doi-146';
+    if(url.includes('Cán bộ và sinh viên của Trường ĐHSP Hà Nội tham gia đi xây dựng'))return 'song-cau';
+    if(url.includes('02_Bức tường Panorama'))return 'wall-panorama';
+    if(url.includes('03_')&&d.zoneName?.startsWith('Cụm 2'))return 'wall-love';
+    if(d.zoneName?.includes('Khu vực 2'))return 'research-activities';
+    if(d.zoneName?.startsWith('Cụm 3')&&d.displayMode==='activity-profile')return 'research-achievements';
+    return null;
+}
+function photoTime(d){
+    const text=displayText([d.year,d.title].filter(Boolean).join(' '));
+    const full=text.match(/(\d{1,2})\/(\d{1,2})\/(19\d{2}|20\d{2})/);
+    if(full)return Number(full[3])*10000+Number(full[2])*100+Number(full[1]);
+    const month=text.match(/(\d{1,2})\/(19\d{2}|20\d{2})/);
+    if(month)return Number(month[2])*10000+Number(month[1])*100;
+    const year=text.match(/(?:19|20)\d{2}/);
+    return year?Number(year[0])*10000:99999999;
+}
+function groupedPhotoData(d){
+    const group=photoGroup(d);
+    if(!group)return d;
+    const members=interactiveObjects.map(o=>o.userData).filter(item=>photoGroup(item)===group);
+    const chronological=!group.startsWith('ba-')&&group!=='doi-146'&&group!=='song-cau';
+    members.sort((a,b)=>chronological
+        ? photoTime(a)-photoTime(b)||displayText(a.title).localeCompare(displayText(b.title),'vi')
+        : (group==='ba-1' ? (a.imageUrl.includes('IMG01')?0:a.imageUrl.includes('IMG03')?1:2)
+            -(b.imageUrl.includes('IMG01')?0:b.imageUrl.includes('IMG03')?1:2) : 0)
+          ||(a.imageUrl.includes('Tổ trực')?1:0)-(b.imageUrl.includes('Tổ trực')?1:0)
+          ||(a.imageUrl.includes('Cột ảnh lễ xuất phát')?0:1)-(b.imageUrl.includes('Cột ảnh lễ xuất phát')?0:1)
+          ||a.imageUrl.localeCompare(b.imageUrl,'vi',{numeric:true}));
+    const seen=new Set(),gallery=[];
+    members.forEach(item=>{
+        const entries=item.galleryItems?.length?item.galleryItems:
+            [item.imageUrl,...(item.gallery||[])].filter(Boolean).map(imageUrl=>({...item,imageUrl}));
+        entries.forEach(entry=>{if(!seen.has(entry.imageUrl)){
+            seen.add(entry.imageUrl);gallery.push({...item,...entry,title:displayText(entry.title||item.title),
+                content:displayText(entry.content||item.content),source:item.source});
+        }});
+    });
+    return {...d,groupNavigation:true,galleryItems:gallery,
+        galleryIndex:Math.max(0,gallery.findIndex(item=>item.imageUrl===d.imageUrl))};
+}
+let activePhotoNavigation=null;
+document.addEventListener('keydown',event=>{
+    if(document.getElementById('info-overlay')?.style.display!=='flex'||!activePhotoNavigation)return;
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+        event.preventDefault();event.stopImmediatePropagation();activePhotoNavigation(event.key==='ArrowLeft'?-1:1);
+    }
+});
 function showInfoPanel(d) {
+    d=groupedPhotoData(d);
+    d={...d,title:displayText(d.title),content:displayText(d.content),zoneName:displayText(d.zoneName)};
+    activePhotoNavigation=null;
     moveForward = moveBackward = moveLeft = moveRight = false;
     velocity.set(0, 0, 0);
     clearInteractionHover();
@@ -770,6 +834,7 @@ function showInfoPanel(d) {
     );
     
     const imgCont = document.getElementById('info-img-container');
+    imgCont.querySelector('.info-gallery-nav')?.remove();
     const imgEl = document.getElementById('info-img');
     if (d.imageUrl) {
         // Tên ảnh tư liệu có dấu, khoảng trắng và dấu ngoặc. Mã hóa URL trước khi
@@ -796,7 +861,7 @@ function showInfoPanel(d) {
         if (gallery.length > 1) {
             const nav = document.createElement('div');
             nav.className = 'info-gallery-nav';
-            if (d.displayMode === 'activity-profile') {
+            if (d.displayMode === 'activity-profile'||d.groupNavigation) {
                 nav.classList.add('is-arrow-nav');
                 let galleryIndex = Math.max(0, Math.min(gallery.length - 1, d.galleryIndex || 0));
                 const selectGalleryImage = index => {
@@ -804,7 +869,12 @@ function showInfoPanel(d) {
                     const galleryItem = gallery[galleryIndex];
                     imgEl.src = encodeURI(galleryItem.imageUrl);
                     imgCont.style.display = 'flex';
+                    renderInfoTitle(document.getElementById('info-title'),displayText(galleryItem.title),false);
+                    renderInfoContent(document.getElementById('info-content'),displayText(galleryItem.content),
+                        d.displayMode==='activity-profile');
+                    document.getElementById('info-meta').textContent=displayText(galleryItem.year||'');
                 };
+                activePhotoNavigation=direction=>selectGalleryImage(galleryIndex+direction);
                 [-1, 1].forEach(direction => {
                     const button = document.createElement('button');
                     button.type = 'button';
@@ -835,7 +905,8 @@ function showInfoPanel(d) {
                 });
                 nav.appendChild(button);
             });
-            extra.appendChild(nav);
+            if(d.groupNavigation&&d.displayMode==='photo-caption')imgCont.appendChild(nav);
+            else extra.appendChild(nav);
         }
         const actions = document.createElement('div');
         actions.className = 'info-resource-actions';
@@ -1843,6 +1914,7 @@ function updateVolumeIcon() {
 
 // --- HÀM RENDER CHỮ 3D VÀ BẢNG THÔNG TIN ---
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    text=displayText(text);
     const words = text.split(' '); let line = ''; const lines = [];
     for (let n = 0; n < words.length; n++) {
         const test = line + words[n] + ' ';
@@ -1931,6 +2003,7 @@ function mountContentPanelToWall(cfg, faceZ, depth) {
 }
 
 function createReferenceTitle(cfg) {
+    cfg={...cfg,text:displayText(cfg.text)};
     const faceZ = cfg.surfaceZ ?? .035;
     const depth = cfg.depth ?? .09;
     cfg = mountContentPanelToWall({...cfg, surfaceZ:faceZ, backingFaceZ:faceZ}, faceZ, depth);
@@ -2168,6 +2241,7 @@ function createWallPicture(cfg) {
 
 // Ảnh tư liệu được làm dày bằng chính các lớp ảnh đồng kích thước.
 function createWallPhotoTile(cfg) {
+    cfg={...cfg,title:displayText(cfg.title),content:displayText(cfg.content),zoneName:displayText(cfg.zoneName)};
     if (cfg.zoneName?.startsWith('Cụm 1')) {
         cfg = mountContentPanelToWall({...cfg, photoDepth:cfg.photoDepth || .10}, .035, cfg.photoDepth || .10);
     }
@@ -2588,6 +2662,7 @@ function getZone1CaptionRatio(text, role='photo-caption') {
 }
 
 function createZone1RaisedText(cfg) {
+    cfg={...cfg,text:displayText(cfg.text),meta:displayText(cfg.meta)};
     cfg = mountContentPanelToWall(cfg, 0, cfg.depth || .085);
     const aspect = Math.max(.18, cfg.w / cfg.h);
     const canvas = document.createElement('canvas');
@@ -2731,6 +2806,7 @@ function createZone1TextPanel(cfg) {
 }
 
 function createZone1TealTextPanel(cfg) {
+    cfg={...cfg,rawText:displayText(cfg.rawText??cfg.content),label:displayText(cfg.label)};
     if (ZONE1_RAISED_TEXT_DEMO) {
         const text = String(cfg.rawText ?? cfg.content ?? '').trim();
         const mesh = createZone1RaisedText({
@@ -3365,8 +3441,8 @@ function buildZone1EditorialV3() {
     const baTop=8.28,baBottom=3.12;
     sideStack(.778,[
         {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG01.jpg',aspect:872/614,title:'Bí thư Đoàn trường Trịnh Ngọc Trình phát biểu tuyên thệ trong Lễ phát động phong trào “Ba sẵn sàng” tại Nghĩa trang Liệt sĩ Mai Dịch - Hà Nội, ngày 30/4/1964.'},
-        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG02.jpg',aspect:1997/1347,title:'Bí thư Đảng ủy Trường ĐHSP Hà Nội Đỗ Đức Uyên trao cờ và giao nhiệm vụ cho Đoàn Thanh niên Trường quyết tâm thực hiện phong trào “Ba sẵn sàng” tại Lễ phát động ngày 30/4/1964.'},
-        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG03.png',aspect:832/621,title:'Đoàn viên, sinh viên Trường ĐHSP Hà Nội hưởng ứng phong trào Ba sẵn sàng tại Lễ phát động ngày 30/4/1964.'}
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG03.png',aspect:832/621,title:'Bí thư Đảng ủy Trường ĐHSP Hà Nội Đỗ Đức Uyên trao cờ và giao nhiệm vụ cho Đoàn Thanh niên Trường quyết tâm thực hiện phong trào “Ba sẵn sàng” tại Lễ phát động ngày 30/4/1964.'},
+        {root:baRoot+'Ba Sẵn Sàng cột ảnh 1/',file:'IMG02.jpg',aspect:1997/1347,title:'Đoàn viên, sinh viên Trường ĐHSP Hà Nội hưởng ứng phong trào Ba sẵn sàng tại Lễ phát động ngày 30/4/1964.'}
     ],baTop,baBottom,4.10,{imageWidth:2.208,fontSize:.11});
     sideStack(.648,[
         {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Những năm 1964-1965, lớp trẻ thủ đô sẵn sàng “xẻ dọc Trường Sơn đi cứu nước”.jpg',aspect:960/626},
@@ -3375,7 +3451,7 @@ function buildZone1EditorialV3() {
         {root:baRoot+'Ba Sẵn Sàng cột ảnh 2/',file:'Từ mảnh đất thiêng Thăng Long - Đông Đô - Hà Nội, phong trào “Ba sẵn sàng” nhanh chóng lan rộng ra cả nước và trở thành cao trào cách mạng của tuổi trẻ.jpg',aspect:640/453}
     ],baTop,baBottom,4.10,{imageWidth:2.208,fontSize:.11});
     const hamRongTitle='Sinh viên Trường ĐHSP Hà Nội tham gia phục vụ chiến đấu tại Cầu Tào, Hàm Rồng, Thanh Hoá, ngày 15/8/1966.';
-    card({fraction:.713,root:baRoot,file:'Sinh viên trường ĐHSPHN tham gia phục vụ chiến đấu tại cầu Tào, Hàm Rồng, Thanh Hoá, 15⁄8⁄1966.jpg',title:hamRongTitle,w:9.05,imageH:1.30,captionH:.48,bottom:1.20});
+    card({fraction:.713,root:baRoot,file:'Sinh viên trường ĐHSPHN tham gia phục vụ chiến đấu tại cầu Tào, Hàm Rồng, Thanh Hoá, 15-8-1966.jpg',title:hamRongTitle,w:9.05,imageH:1.30,captionH:.48,bottom:1.20});
 
     // XẾP BÚT NGHIÊN: infographic và hai nhóm ảnh độc lập theo đúng hai thư mục mới.
     createZone1Infographic(Z,{fraction:.535,title:'XẾP BÚT NGHIÊN LÊN ĐƯỜNG RA TRẬN',year:'1966–1979',imageUrl:'infographic/Infographic phong trào Xếp bút nghiên lên đường ra trận.png',content:'Cán bộ và sinh viên tạm gác việc giảng dạy, học tập để chiến đấu, phục vụ chiến đấu và bảo vệ Tổ quốc.',source:'Tư liệu tổng hợp Chủ đề 3',links:sourceLinks});
@@ -3418,7 +3494,7 @@ function buildZone1EditorialV3() {
         ['Cột ảnh cán bộ làm việc và lao động/','Hiệu trưởng Dương Trọng Bái đến thăm cán bộ, chiến sĩ Trung đoàn 32 trên phòng tuyến Sông Cầu, 1979.jpg',1802/1282],
         ['Cột ảnh cán bộ làm việc và lao động/','Ban chỉ huy Trung đoàn 32 hội ý phương án mới ngay trên phòng tuyến.jpg',1725/1282],
         ['Cột ảnh cán bộ làm việc và lao động/','Cán bộ kĩ thuật Đoàn Nguyễn Huệ nghiệm thu sau mỗi ngày làm việc phân việc của trường ĐHSP Hà Nội trên phòng tuyến Sông Cầu, 1979.jpg',1859/1282],
-        ['Cột ảnh cán bộ làm việc và lao động/','Khoa Ngữ văn xuất quân trên phòng tuyến Sông Cầu, 5⁄1979.jpg',2047/1282],
+        ['Cột ảnh cán bộ làm việc và lao động/','Khoa Ngữ văn xuất quân trên phòng tuyến Sông Cầu, 5-1979.jpg',2047/1282],
         ['Cột ảnh các đơn vị/Cụm ảnh lao động của đơn vị/','Khoa Giáo dục Chính trị - đơn vị dẫn đầu Trung đoàn 32 ĐHSP Hà Nội I trên phòng tuyến về năng suất lao động và phá đá.jpg',1621/1283],
         ['Cột ảnh các đơn vị/Cụm ảnh lao động của đơn vị/','Đại đội khoa Hoá lao động trên phòng tuyến.jpg',1981/1282],
         ['Cột ảnh các đơn vị/Cụm ảnh giải lao/','Phút nghỉ ngơi giải lao của CBSV khoa Lịch sử trên phòng tuyến sông Cầu.jpg',1693/1282],
@@ -3668,6 +3744,7 @@ function createZone3UnifiedCard({
     fixedHeight=null,fixedImageHeight=null,displayMode='activity-profile',
     horizontalImageWidth=null
 }){
+    item={...item,title:displayText(item.title),content:displayText(item.content)};
     // Mặt sau lớp nền ăn vào tường 0.001 đơn vị; cả ảnh và chữ dùng
     // chung mặt in, khối nền và bán kính, không có khe hở ở mối nối.
     radius=faceInnerWall
@@ -3985,13 +4062,25 @@ function buildZone3_NCKH() {
     const chronologicalActivities = activityOrder.map(id => ZONE3_ACTIVITIES.find(item => item.id === id)).filter(Boolean);
     // Đo đủ tỷ lệ gốc trước khi dàn hàng: hai hàng chung biên trái/phải,
     // mỗi hàng có chiều cao riêng và các khe bằng nhau, không crop ảnh.
-    Promise.all(chronologicalActivities.map(item=>new Promise(resolve=>{
-        loadDisplayTexture(item.image,renderer,texture=>{
+    // Chờ Promise của bộ tải trực tiếp: khi ảnh lỗi bộ tải trả null,
+    // vì vậy một file thiếu không thể giữ cả khu trong trạng thái chờ.
+    Promise.all(chronologicalActivities.map(async item=>{
+        const texture=await loadDisplayTexture(item.image,renderer);
+        if(texture){
             const aspect=texture.image.width/texture.image.height;
             texture.dispose();
-            resolve({item,aspect});
-        });
-    }))).then(photos=>{
+            return {item,aspect};
+        }
+        // Ảnh dự phòng được tạo tại máy, không phụ thuộc dịch vụ bên ngoài.
+        const canvas=document.createElement('canvas');
+        canvas.width=900;canvas.height=600;
+        const ctx=canvas.getContext('2d');
+        ctx.fillStyle='#eaf4fd';ctx.fillRect(0,0,900,600);
+        ctx.fillStyle='#174f82';ctx.font=`700 36px ${UI_FONT}`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('Ảnh đang được cập nhật',450,300);
+        return {item:{...item,image:canvas.toDataURL('image/png')},aspect:1.5};
+    })).then(photos=>{
         const radius=R_OUTER-WALL_THICK/2+.0025;
         const arc=Math.abs(Z.a1-Z.a0)*radius;
         const start=.105,end=.555,gap=.18,captionH=.66,rowGap=.32;
@@ -4883,6 +4972,7 @@ function createStoryPhotoClusters({
 }
 
 function createStoryCaption(cfg) {
+    cfg={...cfg,title:displayText(cfg.title),meta:displayText(cfg.meta)};
     if (ZONE1_RAISED_TEXT_DEMO && cfg.zoneName?.startsWith('Cụm 1')) {
         return createZone1RaisedText({
             ...cfg,
@@ -6030,7 +6120,7 @@ function updateZoneBanner(zone) {
             elProvinceSelector.style.display = (SHOW_PROVINCE_SELECTOR && zone.id === 2) ? 'block' : 'none';
         }
         elZoneBanner.textContent = ({0:'Sảnh trung tâm',1:'Yêu nước cách mạng',
-            2:'Dấu chân tình nguyện',3:'Học tập & Nghiên cứu khoa học'})[zone.id]||'';
+            2:'Dấu chân tình nguyện',3:'Học tập và Nghiên cứu khoa học'})[zone.id]||'';
         const hex = '#' + zone.color.toString(16).padStart(6, '0');
         elZoneBanner.style.color = hex; elZoneBanner.style.borderColor = hex;
         targetFogColor.copy(baseFogColor).lerp(new THREE.Color(zone.color), zone.id === 0 ? 0 : 0.12);

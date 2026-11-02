@@ -38,3 +38,8 @@
     .loading-header p { max-width:none; text-align:center; }
     .loading-progress-track span { width:0%; animation:none; background:linear-gradient(90deg,#005baa,#f4b223,#fff); transition:width .25s; }
     #blocker .enter-room-button { font-size:16px; }
+    .loading-header .loading-slogan {
+        margin:.85rem 0 0; color:#e7c985;
+        font-size:clamp(.65rem,1.25vw,.95rem); font-weight:600;
+        line-height:1.6; letter-spacing:.08em;
+    }

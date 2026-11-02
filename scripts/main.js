@@ -115,8 +115,8 @@ const HEATMAP_MANUAL_PAUSE_MS = 15000;
 // GLB chỉ có một mesh, nên các vùng bấm được đặt trên một lớp trong suốt ở phía
 // trước bản đồ. Tọa độ được chuẩn hoá (0..1), tính từ góc trái dưới của mặt map.
 // Có thể bổ sung/sửa polygon tại đây khi chốt vị trí các tỉnh cùng người biên tập.
-const VIETNAM_MAP_GEOJSON = '../Đồ 3D JS/vietnam-34-map/data/overview.geojson';
-const VIETNAM_ARCHIPELAGO_GEOJSON = '../Đồ 3D JS/Free-GIS-Data-main/Vietnam Administrative Divisions (Pre-2025) - Đơn vị hành chính Việt Nam (Trước 2025)/Provinces_included_Paracel_SpratlyIslands_combine.geojson';
+const VIETNAM_MAP_GEOJSON = './json_map/overview.geojson';
+const VIETNAM_ARCHIPELAGO_GEOJSON = './json_map/archipelagos.geojson';
 const VIETNAM_REGION_META = Object.freeze({
     'mien-bac': Object.freeze({ name: 'MIỀN BẮC', color: 0x1261a0 }),
     'mien-trung': Object.freeze({ name: 'MIỀN TRUNG', color: 0xd56b1f }),
