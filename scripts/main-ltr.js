@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { createRoomMinimap } from './ui/room-minimap.js';
+let updateRoomMinimap = null;
 import WebGL from "three/addons/capabilities/WebGL.js";
 import { MEDIA_ASSETS, placeholderImage } from "./config/assets.js";
 import {
@@ -516,6 +518,7 @@ function init() {
 
     buildArchitecture();
     buildCeilings(); buildZoneContents();
+    if(document.body.dataset.roomMinimap==='true') updateRoomMinimap=createRoomMinimap();
 }
 
 function applyCameraRotation() {
@@ -2026,7 +2029,15 @@ function createReferenceTitle(cfg) {
     const textX = textAlign === 'left' ? textPadding : (textAlign === 'right' ? c.width - textPadding : c.width / 2);
     ctx.fillStyle = tColor; ctx.font = '700 ' + fontSize + 'px ' + UI_FONT;
     ctx.textAlign = textAlign; ctx.textBaseline = 'middle';
-    wrapText(ctx, cfg.text, textX, c.height / 2, c.width - textPadding * 2, fontSize * 1.25); 
+    if(cfg.singleLine){
+        let fittedSize=fontSize;
+        while(fittedSize>12 && ctx.measureText(cfg.text).width>c.width-textPadding*2){
+            fittedSize-=1;ctx.font='700 '+fittedSize+'px '+UI_FONT;
+        }
+        ctx.fillText(cfg.text,textX,c.height/2);
+    }else{
+        wrapText(ctx, cfg.text, textX, c.height / 2, c.width - textPadding * 2, fontSize * 1.25);
+    }
 
     const tex = createSRGBCanvasTexture(c);
     const segments = cfg.curveRadius ? 32 : 1;
@@ -3454,9 +3465,20 @@ function buildZone1EditorialV3() {
     card({fraction:.713,root:baRoot,file:'Sinh viên trường ĐHSPHN tham gia phục vụ chiến đấu tại cầu Tào, Hàm Rồng, Thanh Hoá, 15-8-1966.jpg',title:hamRongTitle,w:9.05,imageH:1.30,captionH:.48,bottom:1.20});
 
     // XẾP BÚT NGHIÊN: infographic và hai nhóm ảnh độc lập theo đúng hai thư mục mới.
-    createZone1Infographic(Z,{fraction:.535,title:'XẾP BÚT NGHIÊN LÊN ĐƯỜNG RA TRẬN',year:'1966–1979',imageUrl:'infographic/Infographic phong trào Xếp bút nghiên lên đường ra trận.png',content:'Cán bộ và sinh viên tạm gác việc giảng dạy, học tập để chiến đấu, phục vụ chiến đấu và bảo vệ Tổ quốc.',source:'Tư liệu tổng hợp Chủ đề 3',links:sourceLinks});
-
-    const doiCenter=.375;
+    // Neo cụm ngoài cùng bên phải (Trung đoàn 32). Thu một nửa từng khe
+    // mép–mép, rồi suy ngược vị trí Đội 146 và infographic theo cung tường.
+    const compactXep=document.body.dataset.compactXep==='true';
+    const songCenter=.145,songGroupWidth=8.75,doiGroupWidth=6.25;
+    const infoWidth=7.5*943/2000;
+    const oldDoiGap=(.375-songCenter)*arcLength-(songGroupWidth+doiGroupWidth)/2;
+    const oldInfoGap=(.535-.375)*arcLength-(doiGroupWidth+infoWidth)/2;
+    const doiCenter=compactXep
+        ? songCenter+((songGroupWidth+doiGroupWidth)/2+oldDoiGap/2)/arcLength
+        : .375;
+    const infoCenter=compactXep
+        ? doiCenter+((doiGroupWidth+infoWidth)/2+oldInfoGap/2)/arcLength
+        : .535;
+    createZone1Infographic(Z,{fraction:infoCenter,title:'XẾP BÚT NGHIÊN LÊN ĐƯỜNG RA TRẬN',year:'1966–1979',imageUrl:'infographic/Infographic phong trào Xếp bút nghiên lên đường ra trận.png',content:'Cán bộ và sinh viên tạm gác việc giảng dạy, học tập để chiến đấu, phục vụ chiến đấu và bảo vệ Tổ quốc.',source:'Tư liệu tổng hợp Chủ đề 3',links:sourceLinks});
     textPanel(doiCenter,7.93,6.25,.70,'ĐỘI THANH NIÊN XUNG KÍCH · 1972','Cuối năm 1972, Đội Thanh niên Xung kích gồm 36 cán bộ, sinh viên Trường Đại học Sư phạm Hà Nội I tham gia phục vụ giao thông vận tải, khắc phục hậu quả bom đạn Mỹ trên tuyến đường sắt Hà Nội – Lạng Sơn.');
     const doiLeft=doiCenter+1.55/arcLength,doiRight=doiCenter-1.55/arcLength;
     // Hai cột ảnh nổi, không ghép thêm khối chữ. Lễ xuất phát ở bên trái
@@ -3482,8 +3504,6 @@ function buildZone1EditorialV3() {
 
     // Gom ba cột Trung đoàn 32 và dịch nhẹ vào trong để không
     // chạm cột phân cụm. Kích thước từng ảnh được giữ nguyên.
-    const songCenter=.145;
-    const songGroupWidth=8.75;
     textPanel(songCenter,7.93,songGroupWidth,.70,'TRUNG ĐOÀN 32 · 1979',"Tháng 5 năm 1979, Trường Đại học Sư phạm Hà Nội I thành lập Trung đoàn 32 gồm 1.345 người tham gia xây dựng phòng tuyến Sông Cầu, bảo vệ Thủ đô.");
     const songColumns=[songCenter+2.82/arcLength,songCenter,songCenter-2.82/arcLength];
     const songItems=[
@@ -4104,12 +4124,17 @@ function buildZone3_NCKH() {
     });
 
     const innerDisplayR = R_CORE + WALL_THICK / 2 - .0025;
-    const innerTitle = wallZonePoint(Z, .5, innerDisplayR, true);
+    // Dịch đồng bộ về phía nhóm chân dung Cụm 1, giữ nhịp ảnh và độ cao.
+    const achievementShift = document.body.dataset.compactXep==='true' ? .045 : 0;
+    const achievementColumnStep=.68/4 + (document.body.dataset.compactXep==='true' ? .012 : 0);
+    // Cột cuối có ảnh nckh-2026 là mốc; dàn các cột khác ra xa mốc.
+    const achievementAnchor=.84-.68+achievementShift;
+    const innerTitle = wallZonePoint(Z, achievementAnchor+2*achievementColumnStep, innerDisplayR, true);
     createReferenceTitle({
         x: innerTitle.x, z: innerTitle.z, y: 8.10, rotY: faceCoreRotY(innerTitle.angle) + Math.PI,
-        text: 'THÀNH TÍCH TIÊU BIỂU TRONG NHỮNG NĂM GẦN ĐÂY',
+        text: 'Thành tích tiêu biểu trong hoạt động học tập và nghiên cứu khoa học của đoàn viên thanh niên nhà Trường',
         color: BLUE, curveRadius: -innerDisplayR, bgColor: '#0092df', textColor: '#ffffff',
-        fontSize: 29, w: 7.0, h: .78,
+        fontSize: 48, w: 12.0, h: .78, singleLine:true,
         surfaceZ:.035,backingFaceZ:.035
     });
     const achievementOrder = [
@@ -4127,7 +4152,7 @@ function buildZone3_NCKH() {
         const column = index % 5;
         // Thu gọn thẻ và chừa khe thật giữa các cột. Hai hàng
         // có dải cao riêng nên ảnh dù khác tỷ lệ cũng không chồng nhau.
-        const fraction = .84 - column * (.68 / 4);
+        const fraction = achievementAnchor + (4-column)*achievementColumnStep;
         // Nâng đồng bộ hai hàng, giữ nguyên khoảng cách và mép các thẻ.
         const captionBottom = (row === 0 ? 3.85 : .95) + .90;
         if(item.id==='nhat-nam-2026'){
@@ -6227,6 +6252,7 @@ function animate() {
             }
         });
     }
+    updateRoomMinimap?.(camera);
     renderer.render(scene, camera);
 }
 
@@ -6290,6 +6316,15 @@ window.onload = async function () {
         yaw = faceCoreRotY(previewAngle) + (viewingInnerWall ? Math.PI : 0);
         pitch = 0;
         applyCameraRotation();
+    }
+
+    if (new URLSearchParams(window.location.search).has('achievementPreview')) {
+        document.getElementById('blocker').style.display='none';
+        const zone=getZoneById(3);
+        const angle=zone.a0+(zone.a1-zone.a0)*.545;
+        const radius=R_CORE+8.9;
+        camera.position.set(Math.cos(angle)*radius,5.2,Math.sin(angle)*radius);
+        yaw=faceCoreRotY(angle)+Math.PI;pitch=.12;applyCameraRotation();
     }
 
     // Góc kiểm tra khoảng nối mở giữa Cụm 1 và Cụm 3 sau khi bỏ hành lang.

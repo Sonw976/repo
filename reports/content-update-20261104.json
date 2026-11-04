@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "activities": 26,
+  "media": 66,
+  "duplicates": [
+    {
+      "event": "ha-giang-mhx-2025",
+      "skipped": "Tư liệu cụm 2 - Dấu chân tình nguyện/Thuộc 1_Bản đồ nhiệt_Sư phạm đi và yêu/05_Tủ sách nhỏ - Giấc mơ lớn tại Phú Linh, Hà Giang - Tuyên Quang năm 2025/IMG-025.jpg",
+      "sha256": "72b15d4970169f05d5d9c75cd31fcd212c74dafa297750d2183d3494ff2247ca"
+    },
+    {
+      "event": "tan-lac-tri-thuc-tre-2026",
+      "skipped": "Tư liệu cụm 2 - Dấu chân tình nguyện/Thuộc 1_Bản đồ nhiệt_Sư phạm đi và yêu/09_Đội Trí thức trẻ cùng chuỗi hoạt động tình nguyện Mùa hè xanh tại xã Tân Lạc, tỉnh Phú Thọ năm 2026/IMG-043.jpg",
+      "sha256": "61c4500cbd9777d20a3356136e42488f1754a0a4d064be00691884766937e66f"
+    },
+    {
+      "event": "tan-lac-tri-thuc-tre-2026",
+      "skipped": "Tư liệu cụm 2 - Dấu chân tình nguyện/Thuộc 1_Bản đồ nhiệt_Sư phạm đi và yêu/09_Đội Trí thức trẻ cùng chuỗi hoạt động tình nguyện Mùa hè xanh tại xã Tân Lạc, tỉnh Phú Thọ năm 2026/IMG-045.jpg",
+      "sha256": "c7b8766648a7d2b3c09ef2fb9a61b744c162e03137731497e6dc739f94b61104"
+    }
+  ],
+  "wallCaptionChanges": [
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-007.jpg",
+      "old": "Đội Vì Môi Trường tổ chức chương trình Chủ nhật xanh năm 2023.",
+      "new": "Đội Vì Môi Trường tổ chức chương trình _Chủ nhật xanh_ năm 2023."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-011.jpg",
+      "old": "Đội Vì Môi Trường tổ chức chương trình Chủ nhật Xanh lần thứ 3 tại Công viên Hồ điều hòa Mai Dịch năm 2026.",
+      "new": "Đội Vì Môi Trường tổ chức chương trình _Chủ nhật Xanh_ lần thứ 3 tại Công viên Hồ điều hòa Mai Dịch năm 2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-017.jpg",
+      "old": "Công trình Vườn cây Thanh niên Ươm mầm tương lai 2026 tại 2 điểm Trường Mầm non Yên Khê, Nghệ An do Đội Chuyển giao Kỹ thuật Nông nghiệp Trường ĐHSP Hà Nội thực hiện.",
+      "new": "Công trình Vườn cây Thanh niên _Ươm mầm tương lai_ 2026 tại 2 điểm Trường Mầm non Yên Khê, Nghệ An do Đội Chuyển giao Kỹ thuật Nông nghiệp Trường ĐHSP Hà Nội thực hiện."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-018.jpg",
+      "old": "Đội Tình nguyện Hỗ trợ Thư viện đồng hành cùng chương trình nghệ thuật chính luận Viết tiếp lời tri ân do Đoàn Thanh niên và Hội Cựu chiến binh Đài Truyền hình Việt Nam tổ chức, hướng tới kỷ niệm 79 năm Ngày Thương binh - Liệt sĩ (27/7/1947 - 27/7/2026).",
+      "new": "Đội Tình nguyện Hỗ trợ Thư viện đồng hành cùng chương trình nghệ thuật chính luận _Viết tiếp lời tri ân_ do Đoàn Thanh niên và Hội Cựu chiến binh Đài Truyền hình Việt Nam tổ chức, hướng tới kỷ niệm 79 năm Ngày Thương binh - Liệt sĩ (27_7_1947 - 27_7_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-031.jpg",
+      "old": "Đoàn trường Đại học Sư phạm Hà Nội và Đội Vì Môi Trường tổ chức chương trình Trao gửi yêu thương - Kết nối nụ cười cho các bệnh nhi nhân ngày Quốc tế Thiếu nhi 16 trong chiến dịch Mùa hè Xanh 2026.",
+      "new": "Đoàn trường Đại học Sư phạm Hà Nội và Đội Vì Môi Trường tổ chức chương trình _Trao gửi yêu thương - Kết nối nụ cười_ cho các bệnh nhi nhân ngày Quốc tế Thiếu nhi 1_6 trong chiến dịch Mùa hè Xanh 2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-046.jpg",
+      "old": "Đội Vì Môi Trường tổ chức chương trình Trao gửi yêu thương tại Bệnh viện E nhân ngày Quốc tế Thiếu nhi 16 bằng số tiền thu về từ chương trình Đổi giấy lấy cây năm 2024.",
+      "new": "Đội Vì Môi Trường tổ chức chương trình Trao gửi yêu thương tại Bệnh viện E nhân ngày Quốc tế Thiếu nhi 1_6 bằng số tiền thu về từ chương trình _Đổi giấy lấy cây_ năm 2024."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/02_Bức tường Panorama_Mùa hè tình nguyện/IMG-052.jpg",
+      "old": "Đội Tình nguyện dạy kĩ năng sống cho trẻ em thực hiện công trình thanh niên Tủ sách nhỏ - Giấc mơ lớn tại điểm trường Bắc Sơn - thuộc Trường Tiểu học Đoàn Kết, xã Phú Linh, tỉnh Hà Giang (nay là Tuyên Quang) trong chiến dịch Mùa hè Xanh 2025.",
+      "new": "Đội Tình nguyện dạy kĩ năng sống cho trẻ em thực hiện công trình thanh niên _Tủ sách nhỏ - Giấc mơ lớn_ tại điểm trường Bắc Sơn - thuộc Trường Tiểu học Đoàn Kết, xã Phú Linh, tỉnh Hà Giang (nay là Tuyên Quang) trong chiến dịch Mùa hè Xanh 2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-001.jpg",
+      "old": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu Sắc vàng hoàng yến 2025 tại Trường ĐHSP Hà Nội (17/10/2025).",
+      "new": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu _Sắc vàng hoàng yến_ 2025 tại Trường ĐHSP Hà Nội (17_10_2025)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-002.jpg",
+      "old": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức Chuyến xe về quê đón Tết Bính Ngọ 2026, hỗ trợ sinh viên về quê đón Tết.",
+      "new": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức _Chuyến xe về quê đón Tết Bính Ngọ 2026_, hỗ trợ sinh viên về quê đón Tết."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-003.jpg",
+      "old": "Đội Vì Môi Trường tổ chức hoạt động Chủ nhật Xanh chào mừng Xuân Bính Ngọ 2026.",
+      "new": "Đội Vì Môi Trường tổ chức hoạt động _Chủ nhật Xanh_ chào mừng Xuân Bính Ngọ 2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-005.jpg",
+      "old": "Sinh viên Trường ĐHSP Hà Nội tham gia Ngày hội hiến máu Mùa hè nhân ái 2026 tại Viện Huyết học - Truyền máu Trung ương (062026).",
+      "new": "Sinh viên Trường ĐHSP Hà Nội tham gia Ngày hội hiến máu _Mùa hè nhân ái_ 2026 tại Viện Huyết học - Truyền máu Trung ương (06_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-006.jpg",
+      "old": "Lễ trao tặng quà vinh danh Hoa khôi sinh viên Việt Nam 2024 dành cho Trường ĐHSP Hà Nội (31/1/2026).",
+      "new": "Lễ trao tặng quà vinh danh Hoa khôi sinh viên Việt Nam 2024 dành cho Trường ĐHSP Hà Nội (31_1_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-007.jpg",
+      "old": "Đội sinh viên tình nguyện Khoa Công tác xã hội – Trường Đại học Sư phạm Hà Nội hỗ trợ tổ chức buổi sinh hoạt câu lạc bộ cha mẹ trẻ bại não tại Bệnh viện Nhi Trung ương năm 2025.",
+      "new": "Đội sinh viên tình nguyện Khoa Công tác xã hội – Trường Đại học Sư phạm Hà Nội tại Bệnh viện Nhi Trung ương năm 2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-010.jpg",
+      "old": "Đội Sinh viên tình nguyện trường ĐHSP Hà Nội tổ chức chương trình “Trao gửi yêu thương- Kết nối nụ cười”, trao quà cho bệnh nhi tại Bệnh viện E nhân ngày 1/6/2026.",
+      "new": "Đội Sinh viên tình nguyện trường ĐHSP Hà Nội tổ chức chương trình “Trao gửi yêu thương- Kết nối nụ cười”, trao quà cho bệnh nhi tại Bệnh viện E nhân ngày 1_6_2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-011.jpg",
+      "old": "CLB Thanh niên Xung kích Khoa Ngữ văn tổ chức chương trình thiện nguyện Gửi nắng lên non 2026 tại Trường Tiểu học Lũng Luông, xã Thần Sa, tỉnh Thái Nguyên.",
+      "new": "CLB Thanh niên Xung kích Khoa Ngữ văn tổ chức chương trình thiện nguyện _Gửi nắng lên non_ 2026 tại Trường Tiểu học Lũng Luông, xã Thần Sa, tỉnh Thái Nguyên."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-012.jpg",
+      "old": "Sinh viên Trường ĐHSP Hà Nội tại Ngày hội hiến máu Giọt hồng tri ân 2026.",
+      "new": "Sinh viên Trường ĐHSP Hà Nội tại Ngày hội hiến máu _Giọt hồng tri ân_ 2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-013.jpg",
+      "old": "Đội Vì Môi Trường tổ chức hoạt động Chủ nhật Xanh 2025, dọn dẹp vệ sinh, chăm sóc cảnh quan Đài tưởng niệm liệt sĩ phường Cầu Giấy.",
+      "new": "Đội Vì Môi Trường tổ chức hoạt động _Chủ nhật Xanh_ 2025, dọn dẹp vệ sinh, chăm sóc cảnh quan Đài tưởng niệm liệt sĩ phường Cầu Giấy."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-014.jpg",
+      "old": "Top 21 Miss HNUE 2025 hỗ trợ phát cháo từ thiện cho bệnh nhân tại Viện Huyết học - Truyền máu Trung ương ngày 04/10/2025.",
+      "new": "Top 21 Miss HNUE 2025 hỗ trợ phát cháo từ thiện cho bệnh nhân tại Viện Huyết học - Truyền máu Trung ương ngày 04_10_2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-015.jpg",
+      "old": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức Chuyến xe về quê đón Tết Bính Ngọ 2026, hỗ trợ sinh viên về quê đón Tết.",
+      "new": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức _Chuyến xe về quê đón Tết Bính Ngọ 2026_, hỗ trợ sinh viên về quê đón Tết."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-017.jpg",
+      "old": "400 tình nguyện viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19/8/1945 - 19/8/2025) và Quốc khánh nước CHXHCN Việt Nam (2/9/1945 - 2/9/2025).",
+      "new": "400 tình nguyện viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19_8_1945 - 19_8_2025) và Quốc khánh nước CHXHCN Việt Nam (2_9_1945 - 2_9_2025)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-021.jpg",
+      "old": "Top 21 Miss HNUE 2025 hỗ trợ phát cháo từ thiện cho bệnh nhân tại Viện Huyết học - Truyền máu Trung ương ngày 04/10/2025.",
+      "new": "Top 21 Miss HNUE 2025 hỗ trợ phát cháo từ thiện cho bệnh nhân tại Viện Huyết học - Truyền máu Trung ương ngày 04_10_2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-022.jpg",
+      "old": "Đội Vì Môi trường tham gia chiến dịch Clean up Việt Nam lần thứ 8 ngày 20/09/2026 tại Công viên Chu Văn An, Thanh Liệt, Hà Nội.",
+      "new": "Đội Vì Môi trường tham gia chiến dịch Clean up Việt Nam lần thứ 8 ngày 20_09_2026 tại Công viên Chu Văn An, Thanh Liệt, Hà Nội."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-027.jpg",
+      "old": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu Sắc vàng hoàng yến 2026 tại Trường ĐHSP Hà Nội. (2/4/2026).",
+      "new": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu _Sắc vàng hoàng yến_ 2026 tại Trường ĐHSP Hà Nội. (2_4_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-028.jpg",
+      "old": "Sinh viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19/8/1945 - 19/8/2025) và Quốc khánh nước CHXHCN Việt Nam (2/9/1945 - 2/9/2025).",
+      "new": "Sinh viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19_8_1945 - 19_8_2025) và Quốc khánh nước CHXHCN Việt Nam (2_9_1945 - 2_9_2025)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-029.jpg",
+      "old": "Đội Sinh viên tình nguyện trường ĐHSP Hà Nội tổ chức chương trình Trao gửi yêu thương- Kết nối nụ cười, trao quà cho bệnh nhi tại Bệnh viện E nhân ngày 1/6/2026.",
+      "new": "Đội Sinh viên tình nguyện trường ĐHSP Hà Nội tổ chức chương trình _Trao gửi yêu thương- Kết nối nụ cười_, trao quà cho bệnh nhi tại Bệnh viện E nhân ngày 1_6_2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-031.jpg",
+      "old": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu Sắc vàng hoàng yến 2025 tại Trường ĐHSP Hà Nội (17/10/2025).",
+      "new": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu _Sắc vàng hoàng yến_ 2025 tại Trường ĐHSP Hà Nội (17_10_2025)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-032.jpg",
+      "old": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức Chuyến xe về quê đón Tết Bính Ngọ 2026, hỗ trợ sinh viên về quê đón Tết.",
+      "new": "Đoàn Thanh niên Trường ĐHSP Hà Nội, tổ chức _Chuyến xe về quê đón Tết Bính Ngọ 2026_, hỗ trợ sinh viên về quê đón Tết."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-033.jpg",
+      "old": "Lễ trao tặng quà vinh danh Hoa khôi sinh viên Việt Nam 2024 dành cho Trường ĐHSP Hà Nội (31/1/2026).",
+      "new": "Lễ trao tặng quà vinh danh Hoa khôi sinh viên Việt Nam 2024 dành cho Trường ĐHSP Hà Nội (31_1_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-036.jpg",
+      "old": "Đội sinh viên tình nguyện dạy kỹ năng sống cho trẻ em trao tặng công trình thanh niên Tủ sách nhỏ - giấc mơ lớn tại Tuyên Quang năm 2025.",
+      "new": "Đội sinh viên tình nguyện dạy kỹ năng sống cho trẻ em trao tặng công trình thanh niên _Tủ sách nhỏ - giấc mơ lớn_ tại Tuyên Quang năm 2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-037.jpg",
+      "old": "Đội Tình nguyện Hỗ trợ Thư viện trường ĐHSP Hà Nội đồng hành cùng chương trình nghệ thuật chính luận Viết tiếp lời tri ân hướng tới kỷ niệm 79 năm Ngày Thương binh - Liệt sĩ (27/7/1947 - 27/7/2026).",
+      "new": "Đội Tình nguyện Hỗ trợ Thư viện trường ĐHSP Hà Nội đồng hành cùng chương trình nghệ thuật chính luận _Viết tiếp lời tri ân_ hướng tới kỷ niệm 79 năm Ngày Thương binh - Liệt sĩ (27_7_1947 - 27_7_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-038.jpg",
+      "old": "Sinh viên Trường ĐHSP Hà Nội tham gia Ngày hội hiến máu Mùa hè nhân ái 2024 tại Viện Huyết học - Truyền máu Trung ương (062024).",
+      "new": "Sinh viên Trường ĐHSP Hà Nội tham gia Ngày hội hiến máu _Mùa hè nhân ái_ 2024 tại Viện Huyết học - Truyền máu Trung ương (06_2024)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-039.jpg",
+      "old": "Sinh viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19/8/1945 - 19/8/2025) và Quốc khánh nước CHXHCN Việt Nam (2/9/1945 - 2/9/2025).",
+      "new": "Sinh viên Trường ĐHSP Hà Nội tham gia hỗ trợ Chương trình kỷ niệm 80 năm Cách mạng tháng Tám thành công (19_8_1945 - 19_8_2025) và Quốc khánh nước CHXHCN Việt Nam (2_9_1945 - 2_9_2025)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-040.jpg",
+      "old": "Đội Vì Môi Trường tổ chức hoạt động Chủ nhật Xanh lần thứ III năm 2026.",
+      "new": "Đội Vì Môi Trường tổ chức hoạt động _Chủ nhật Xanh lần thứ III_ năm 2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-041.jpg",
+      "old": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu Sắc vàng hoàng yến 2024 tại Trường ĐHSP Hà Nội (9/10/2024).",
+      "new": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tổ chức Chương trình hiến máu _Sắc vàng hoàng yến_ 2024 tại Trường ĐHSP Hà Nội (9_10_2024)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-042.jpg",
+      "old": "Đội Vì Môi trường tổ chức chương trình Đổi giấy lấy cây và trao quà cho các em nhỏ tại bệnh viện E nhân Ngày Quốc tế Thiếu nhi 1/6/2026.",
+      "new": "Đội Vì Môi trường tổ chức chương trình _Đổi giấy lấy cây_ và trao quà cho các em nhỏ tại bệnh viện E nhân Ngày Quốc tế Thiếu nhi 1_6_2026."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-044.jpg",
+      "old": "Đội sinh viên tình nguyện dạy kỹ năng sống cho trẻ em trao tặng công trình thanh niên Tủ sách nhỏ - giấc mơ lớn tại Tuyên Quang năm 2025.",
+      "new": "Đội sinh viên tình nguyện dạy kỹ năng sống cho trẻ em trao tặng công trình thanh niên _Tủ sách nhỏ - giấc mơ lớn_ tại Tuyên Quang năm 2025."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-045.jpg",
+      "old": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tham dự Lễ ra quân chương trình hiến máu Sắc vàng hoàng yến 2026 tại Viện Huyết học - Truyền máu trung ương (5/10/2026).",
+      "new": "CLB Thanh niên vận động hiến máu trường ĐHSP HN tham dự Lễ ra quân chương trình hiến máu Sắc vàng hoàng yến 2026 tại Viện Huyết học - Truyền máu trung ương (5_10_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-046.jpg",
+      "old": "Đoàn Thanh niên Trường ĐHSP Hà Nội thăm hỏi và tặng quà gia đình người có công với cách mạng tại Ninh Bình nhân dịp kỉ niệm 79 năm Ngày Thương binh - Liệt sĩ (27/7/1947 - 27/7/2026).",
+      "new": "Đoàn Thanh niên Trường ĐHSP Hà Nội thăm hỏi và tặng quà gia đình người có công với cách mạng tại Ninh Bình nhân dịp kỉ niệm 79 năm Ngày Thương binh - Liệt sĩ (27_7_1947 - 27_7_2026)."
+    },
+    {
+      "image": "Tư liệu cụm 2 - Dấu chân tình nguyện/03_Sư phạm trao yêu thương/IMG-050.png",
+      "old": "Trường ĐHSP Hà Nội tổ chức ngày Hội Quỹ Đồng hành với học sinh, sinh viên Trường Đại học Sư phạm Hà Nội – Hành trình Xanh năm 2025.",
+      "new": "Trường ĐHSP Hà Nội tổ chức ngày Hội Quỹ Đồng hành với học sinh, sinh viên Trường Đại học Sư phạm Hà Nội – _Hành trình Xanh_ năm 2025."
+    }
+  ],
+  "textOnly": [
+    {
+      "slug": "ha-noi",
+      "id": "ha-noi-lop-hoc-tinh-thuong",
+      "title": "Hơn 80 lớp học tình thương cho gần 2.000 lượt trẻ em",
+      "place": "Làng trẻ SOS và Làng trẻ Birla, Hà Nội",
+      "date": "1999–2013"
+    },
+    {
+      "slug": "tuyen-quang",
+      "id": "phuong-do-2014",
+      "title": "Dạy học và sinh hoạt hè tại Phương Độ",
+      "place": "xã Phương Độ, Hà Giang (nay thuộc Tuyên Quang)",
+      "date": "2014"
+    },
+    {
+      "slug": "ninh-binh",
+      "id": "duy-tien-2010",
+      "title": "Tình nguyện tại Trung tâm Thương bệnh binh Duy Tiên",
+      "place": "Trung tâm Thương bệnh binh Duy Tiên, Hà Nam (nay thuộc Ninh Bình)",
+      "date": "2010"
+    },
+    {
+      "slug": "ninh-binh",
+      "id": "tieng-anh-tieu-hoc-2025",
+      "title": "Dạy tiếng Anh cho học sinh tiểu học",
+      "place": "Địa bàn Hà Nam trước đây (nay thuộc Ninh Bình)",
+      "date": "2025"
+    },
+    {
+      "slug": "thai-nguyen",
+      "id": "phu-luong-tu-sach-2018",
+      "title": "Tặng sách, xây dựng tủ sách tại Phú Lương",
+      "place": "huyện Phú Lương, Thái Nguyên",
+      "date": "2018"
+    },
+    {
+      "slug": "quang-ngai",
+      "id": "ly-son-thu-vien-2018",
+      "title": "Tặng sách và xây dựng thư viện tại Lý Sơn",
+      "place": "huyện đảo Lý Sơn, Quảng Ngãi",
+      "date": "2018"
+    },
+    {
+      "slug": "bac-ninh",
+      "id": "tan-yen-2011",
+      "title": "Tình nguyện tại Trung tâm Thương bệnh binh Tân Yên",
+      "place": "Trung tâm Thương bệnh binh Tân Yên, Bắc Giang (nay thuộc Bắc Ninh)",
+      "date": "2011"
+    },
+    {
+      "slug": "bac-ninh",
+      "id": "thuan-thanh-2011",
+      "title": "Tình nguyện tại Trung tâm Thương bệnh binh Thuận Thành",
+      "place": "Trung tâm Thương bệnh binh Thuận Thành, Bắc Ninh",
+      "date": "2011"
+    }
+  ]
+}

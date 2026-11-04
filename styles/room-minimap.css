@@ -1,0 +1,7 @@
+.cd3-room-map{position:absolute;top:.9rem;left:.9rem;z-index:6;width:220px;padding:10px;border:1px solid #d6b86f;border-radius:14px;background:rgba(18,79,130,.95);box-shadow:0 12px 30px #12599540;pointer-events:none;box-sizing:border-box}
+.cd3-room-map-diagram{display:block;width:170px;height:185px;margin:auto;border:1px solid #d6b86f;border-radius:10px;background:#2474ac}
+.cd3-room-map-legend{display:grid;gap:5px;margin:9px 0 0;padding:0;list-style:none;color:#fff4d6;font-size:11px;font-weight:600;line-height:1.4}
+.cd3-room-map-legend li{display:flex;align-items:center;gap:6px;padding:3px 5px;border:1px solid transparent;border-radius:5px}
+.cd3-room-map-legend li>span{width:9px;height:9px;flex:0 0 9px;border:1px solid #fff8;border-radius:2px}
+.cd3-room-map-legend li.is-active{background:#ffffff21;border-color:#f1d58a;font-weight:800}
+@media(max-width:760px){.cd3-room-map{top:.75rem;left:.75rem;width:184px;padding:7px}.cd3-room-map-diagram{width:125px;height:136px}.cd3-room-map-legend{font-size:10px;gap:2px}.cd3-room-map-legend li{padding:2px 3px}}
