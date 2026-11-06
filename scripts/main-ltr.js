@@ -4076,8 +4076,8 @@ function buildZone3_NCKH() {
         surfaceZ:.035,backingFaceZ:.035
     });
     const activityOrder = [
-        'toa-dam-2022','khkt-2023','can-bo-tre-12','mang-luoi-2023','khkt-2025',
-        'nckh-2024','can-bo-tre-13','khkt-2026','nckh-2025','chung-khao-2026'
+        'can-bo-tre-12','mang-luoi-2023','chung-khao-2024','nckh-2024','chung-khao-2025',
+        'can-bo-tre-13','tap-huan-ai-2025','nckh-2025','chung-khao-2026'
     ];
     const chronologicalActivities = activityOrder.map(id => ZONE3_ACTIVITIES.find(item => item.id === id)).filter(Boolean);
     // Đo đủ tỷ lệ gốc trước khi dàn hàng: hai hàng chung biên trái/phải,
@@ -4107,7 +4107,9 @@ function buildZone3_NCKH() {
         const availableWidth=(end-start)*arc;
         let rowTop=6.22;
         for(let row=0;row<2;row++){
-            const items=photos.slice(row*5,row*5+5);
+            const split=Math.ceil(photos.length/2);
+            const items=row===0 ? photos.slice(0,split) : photos.slice(split);
+            if(!items.length) continue;
             const imageH=(availableWidth-gap*(items.length-1))/items.reduce((sum,p)=>sum+p.aspect,0);
             const captionBottom=rowTop-imageH-captionH;
             let cursor=start*arc;

@@ -1,20 +1,19 @@
-// Nguồn duy nhất: sheet "Chủ đề 3" trong docs/Chủ đề 3.xlsx.
+// Khu 2: sheet "Chủ đề 3" trong Tài liệu/Phòng Truyền thống số_Bảng tổng hợp tư liệu.xlsx.
 // Hồ sơ Khu vực 1 nằm tại các dòng 117–126 của bảng tính hiện hành.
 // Không bổ sung nội dung suy diễn. Cột J là ghi chú biên tập nên không xuất hiện trên giao diện.
 
 const ROOT = 'Tư liệu Cụm 3/';
 
 const CURRENT_ACTIVITY_SHEET_ROWS = Object.freeze({
-  'chung-khao-2026': 128,
-  'khkt-2026': 129,
-  'nckh-2025': 130,
-  'can-bo-tre-13': 131,
-  'khkt-2025': 132,
-  'nckh-2024': 133,
-  'khkt-2023': 134,
-  'mang-luoi-2023': 135,
-  'can-bo-tre-12': 136,
-  'toa-dam-2022': 137
+  "can-bo-tre-12": 148,
+  "mang-luoi-2023": 147,
+  "chung-khao-2024": 141,
+  "nckh-2024": 145,
+  "chung-khao-2025": 144,
+  "can-bo-tre-13": 143,
+  "tap-huan-ai-2025": 149,
+  "nckh-2025": 142,
+  "chung-khao-2026": 140
 });
 
 const freezeItems = items => Object.freeze(items.map(item => Object.freeze({
@@ -77,17 +76,96 @@ export const ZONE3_PEOPLE = freezeItems([
   }
 ]);
 
+// Dòng 146 chưa có tư liệu thay thế: tạm ẩn khỏi phòng và thư viện ảnh.
 export const ZONE3_ACTIVITIES = freezeItems([
-  { id: 'toa-dam-2022', sheetRow: 66, year: '08/01/2022', title: 'Toạ đàm Phát triển nghề nghiệp cho các nhà nghiên cứu trẻ', image: `${ROOT}Khu2/Toạ đàm Phát triển nghề nghiệp cho các nhà nghiên cứu trẻ.png`, content: 'Sáng ngày 8/1/2022, buổi Toạ đàm Phát triển nghề nghiệp cho các nhà nghiên cứu trẻ (Early Career Researcher Development workshop) do Trường Đại học Sư phạm Hà Nội tổ chức đã được diễn ra trên nền tàng Zoom với sự tham gia của hơn 200 giảng viên, cán bộ nghiên cứu trẻ, học viên sau đại học, sinh viên đến từ nhiều trường đại học và học viện. Với các giảng viên trẻ, nghiên cứu khoa học (NCKH) là một trong hai nhiệm vụ cơ bản trong công việc được giao và là một trong những biện pháp quan trọng - bắt buộc - cần thiết để hướng đến nâng cao chất lượng đào tạo, đáp ứng tốt hơn nhu cầu ngày càng cao của xã hội. Với các bạn sinh viên, NCKH là cơ hội để các bạn sinh viên thử thách, khám phá năng lực của bản thân, đại dương tri thức của nhân loại, và thúc đẩy hoạt động “tự học”, tự đào tạo trên giảng đường đại học. Hoạt động NCKH của sinh viên và cán bộ trẻ được Trường ĐHSPHN xác định là những nhiệm vụ trọng tâm trong nỗ lực phát triển trường đại học nghiên cứu có tầm ảnh hưởng trong khu vực.', source: 'https://hnue.edu.vn/tin-tuc/8977/toa-dam-phat-trien-nghe-nghiep-cho-cac-nha-nghien-cuu-tre.html' },
-  { id: 'khkt-2023', sheetRow: 63, year: '07/01/2023', title: 'Vòng chung kết cuộc thi khoa học kĩ thuật dành cho học sinh trung học cấp Trường Đại học Sư phạm Hà Nội năm học 2022-2023', image: `${ROOT}Khu2/Vòng chung kết cuộc thi khoa học kĩ thuật dành cho học sinh trung học cấp Trường ĐHSP Hà Nội năm học 2022-2023.jpg`, content: 'Sáng ngày 7/1/2023, Trường Đại học Sư phạm Hà Nội (ĐHSP Hà Nội) đã tổ chức thành công Vòng chung kết cuộc thi khoa học kĩ thuật (KHKT) dành cho học sinh trung học năm học 2022-2023. Vòng chung kết cấp Trường ĐHSP Hà Nội năm nay có sự tham gia của 15 đề tài xuất sắc được lựa chọn từ các cuộc thi cấp Trường Chuyên ĐHSP và Trường THCS & THPT Nguyễn Tất Thành. Trong đó, có 12 đề tài thuộc lĩnh vực Khoa học tự nhiên – Công nghệ và 3 đề tài thuộc lĩnh vực Khoa học xã hội hành vi. Ban Giám khảo đã lựa chọn được 2 Giải Nhất, 3 Giải Nhì, 6 Giải Ba và 4 Giải khuyến khích.', source: 'https://hnue.edu.vn/tin-tuc/9193/vong-chung-ket-cuoc-thi-khoa-hoc-ki-thuat-danh-cho-hoc-sinh-trung-hoc-cap-truong-dhsp-ha-noi-nam-hoc-2022-2023.html' },
-  { id: 'can-bo-tre-12', sheetRow: 65, year: '25/04/2023', title: 'Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XII, năm 2023', image: `${ROOT}Khu2/Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ 12.jpg`, content: 'Thực hiện kế hoạch năm học 2022-2023, cũng như tạo môi trường thuận lợi cho các cán bộ, giảng viên trẻ và nghiên cứu sinh Trường Đại học Sư phạm Hà Nội trao đổi học thuật, công bố các công trình nghiên cứu khoa học mới, ngày 25/04/2023, tại Hội trường K1, Đoàn trường Đại học Sư phạm Hà Nội đã tổ chức thành công "Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội, lần thứ XII, năm 2023". Hội thảo năm nay đã lựa chọn được 17 bài viết thuộc lĩnh vực khoa học giáo dục có chất lượng cao cả về lý luận và thực tiễn để xuất bản trong tạp chí Khoa học giáo dục của trường ĐHSPHN.', source: 'https://hnue.edu.vn/tin-tuc/9272/hoi-thao-khoa-hoc-can-bo-tre-truong-dai-hoc-su-pham-ha-noi-lan-thu-12.html' },
-  { id: 'mang-luoi-2023', sheetRow: 64, year: '19/10/2023', title: 'Hội nghị: “Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm”', image: `${ROOT}Khu2/Hội nghị Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm.jpg`, content: 'Sáng ngày 19 tháng 10 năm 2023, Trường Đại học Sư phạm Hà Nội tổ chức Hội nghị: “Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm”. Nhằm tăng cường mối liên kết trách nhiệm giữa trường phổ thông và trường sư phạm trong quá trình phát triển nghề nghiệp cho sinh viên, giáo viên, Trường Đại học Sư phạm Hà Nội đã tổ chức Hội nghị. Trên cơ sở phân tích nội dung thực tập, thực hành sư phạm, thực trạng mối liên kết trách nhiệm giữa trường sư phạm và trường phổ thông; Hội nghị đề xuất nguyên tắc, xây dựng mối liên kết trách nhiệm giữa trường sư phạm và trường phổ thông trong phát triển nghề nghiệp cho sinh viên, giáo viên hướng đến phát triển mối quan hệ cộng tác bền vững và hiệu quả.', source: 'https://hnue.edu.vn/tin-tuc/10370/hoi-nghi-mang-luoi-doi-tac-phat-trien-nghe-nghiep-cho-sinh-vien-su-pham.html' },
-  { id: 'nckh-2024', sheetRow: 62, year: '15/01/2025', title: 'Hội nghị tổng kết, trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2024', image: `${ROOT}Khu2/(2024) HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024/HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024.jpg`, gallery: [`${ROOT}Khu2/(2024) HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024/HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024 (2).jpg`], content: 'Với mục đích đánh giá, rút kinh nghiệm nhằm nâng cao chất lượng hoạt động nghiên cứu khoa học của sinh viên và khen thưởng những tập thể, cá nhân đạt kết quả cao về Khoa học & Công nghệ dành cho giảng viên trẻ, sinh viên, sáng ngày 15/01/2025, tại Hội trường 11-10, Trường Đại học Sư phạm Hà Nội đã tổ chức thành công Hội nghị tổng kết và trao Giải thưởng Khoa học và Công nghệ dành cho giảng viên trẻ, sinh viên năm 2024. Ở cấp cơ sở, Hội nghị Sinh viên Nghiên cứu Khoa học năm 2024 được tổ chức thành công với tổng số 663 đề tài, với sự tham gia của 1883 sinh viên từ 24 khoa trực thuộc Nhà trường. Nhà trường đã công bố và trao 15 giải Nhất, 22 giải Nhì, 24 giải Ba và 29 giải Khuyến khích.', source: 'https://hnue.edu.vn/tin-tuc/10730/hoi-nghi-tong-ket-giai-thuong-khoa-hoc-cong-nghe-danh-cho-giang-vien-sinh-vien-nam-2024.html' },
-  { id: 'khkt-2025', sheetRow: 61, year: '11/01/2025', title: 'Chung kết cuộc thi Khoa học, kĩ thuật của Trường Đại học Sư Phạm Hà Nội năm học 2024- 2025', image: `${ROOT}Khu2/Chung kết cuộc thi Khoa học, kĩ thuật của Trường Đại học Sư Phạm Hà Nội năm học 2024- 2025.jpg`, content: 'Sáng thứ Bảy (11/1/2025), tại sân trường THCS và THPT Nguyễn Tất Thành, Trường Đại học Sư phạm Hà Nội đã tổ chức Chung kết cuộc thi Khoa học, kĩ thuật dành cho học sinh trung học năm học 2024-2025. Cuộc thi đã diễn ra trong không khí sôi nổi và thu hút sự quan tâm của đông đảo học sinh với 21 đề tài nghiên cứu ấn tượng. Trong đó 2 đề tài nghiên cứu xuất sắc đến từ Trường THCS và THPT Nguyễn Tất Thành và Trường THPT Chuyên Sư Phạm đã giành được giải Nhất cấp Trường ĐHSP Hà Nội.', source: 'https://hnue.edu.vn/tin-tuc/10721/chung-ket-cuoc-thi-khoa-hoc-ki-thuat-cua-truong-dai-hoc-su-pham-ha-noi-nam-hoc-2024-2025-kham-pha-va-sang-tao-khong-gioi-han.html' },
-  { id: 'can-bo-tre-13', sheetRow: 60, year: '22/08/2025', title: 'Hội thảo Khoa học Cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XIII, năm 2025', image: `${ROOT}Khu2/Hội thảo Khoa học Cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XIII, năm 2025.jpg`, content: 'Ngày 22/8/2025, tại Hội trường K1, Trường Đại học Sư phạm Hà Nội đã diễn ra Hội thảo Khoa học Cán bộ trẻ lần thứ XIII với sự tham gia của đông đảo cán bộ trẻ, giảng viên, học viên cao học, nghiên cứu sinh trong toàn trường. Hội thảo đã nhận được toàn văn 20 bài viết từ các tác giả, nhóm nghiên cứu. Hội thảo đã nhận được nhiều ý kiến trao đổi sôi nổi, thẳng thắn và mang tính xây dựng từ các đại biểu, giảng viên và nghiên cứu viên tham dự.', source: 'https://hnue.edu.vn/tin-tuc/10943' },
-  { id: 'nckh-2025', sheetRow: 59, year: '20/01/2026', title: 'Hội nghị tổng kết, trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025', image: `${ROOT}Khu2/NCKH 2025.jpg`, content: 'Sáng ngày 20/01/2026, Trường Đại học Sư phạm Hà Nội tổ chức Hội nghị tổng kết và trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025. Năm 2025, trong tổng số gần 16 nghìn sinh viên toàn Trường, có khoảng 1.000 đề tài đăng ký tham gia nghiên cứu khoa học. Trong đó, 743 đề tài được hoàn thành, với sự tham gia của hơn 2.000 sinh viên và hàng trăm giảng viên hướng dẫn. Kết quả chung cuộc, Nhà trường đã trao 19 giải Nhất, 19 giải Nhì, 32 giải Ba và 30 giải Khuyến khích. Sinh viên nhà trường còn đạt 1 Giải Nhì và 2 Giải Khuyến khích Giải thưởng SVNCKH EUREKA do Thành Đoàn TPHCM tổ chức.', source: 'https://hnue.edu.vn/tin-tuc/11117/hoi-nghi-tong-ket-trao-giai-thuong-khoa-hoc-va-cong-nghe-danh-cho-sinh-vien-nam-2025.html' },
-  { id: 'khkt-2026', sheetRow: 58, year: '17/01/2026', title: 'Chung kết cuộc thi Khoa học kĩ thuật dành cho học sinh Trung học năm học 2025-2026', image: `${ROOT}web-assets/khkt-2025-2026.jpg`, content: 'Sáng thứ Bảy (17/01/2026) vừa qua, Trường Đại học Sư phạm Hà Nội đã tổ chức chung kết cuộc thi Khoa học kĩ thuật dành cho học sinh Trung học tại khuôn viên Trường THCS và THPT Nguyễn Tất Thành (Hà Nội). Cuộc thi diễn ra với sự góp mặt của 38 đề tài. Các nhóm dự thi đã xuất sắc mang về 3 giải Nhất, 8 giải Nhì, 12 giải Ba và 15 giải Khuyến khích.', source: 'https://hnue.edu.vn/tin-tuc/11116/chung-ket-cuoc-thi-khoa-hoc-ki-thuat-danh-cho-hoc-sinh-trung-hoc-nam-hoc-2025-2026.html' },
-  { id: 'chung-khao-2026', sheetRow: 57, year: '28/05/2026', title: 'Vòng Chung khảo Giải thưởng Khoa học và Công nghệ cấp Trường dành cho sinh viên năm 2026', image: `${ROOT}Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026.jpg`, gallery: [`${ROOT}Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026 (2).jpg`, `${ROOT}Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026 (3).jpg`], content: 'Sáng ngày 28/5/2026, tại Hội trường K1, Trường Đại học Sư phạm Hà Nội đã diễn ra Vòng Chung khảo Giải thưởng Khoa học và Công nghệ cấp Trường dành cho sinh viên năm 2026. Trong tổng số 17.152 sinh viên toàn trường có hơn 1.000 đề tài đăng ký tham gia nghiên cứu khoa học; trong đó 819 đề tài đã được hoàn thành với sự tham gia của 2.243 sinh viên và 405 cán bộ hướng dẫn. Tổng số đề tài tham dự vòng Sơ khảo năm nay đạt 123 đề tài, tăng 19,4% so với năm 2025.', source: 'https://hnue.edu.vn/tin-tuc/11273/truong-dai-hoc-su-pham-ha-noi-to-chuc-vong-chung-khao-giai-thuong-khoa-hoc-va-cong-nghe-danh-cho-sinh-vien-nam-2026.html' }
+  {
+    "id": "can-bo-tre-12",
+    "sheetRow": 148,
+    "year": "25/04/2023",
+    "title": "Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XII, năm 2023",
+    "image": "Tư liệu Cụm 3/Khu2/Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ 12.jpg",
+    "content": "Ngày 25/04/2023, tại Hội trường K1, Đoàn trường Đại học Sư phạm Hà Nội đã tổ chức thành công \"Hội thảo khoa học cán bộ trẻ Trường Đại học Sư phạm Hà Nội, lần thứ XII, năm 2023\".\nHội thảo đã lựa chọn được 17 bài viết thuộc lĩnh vực khoa học giáo dục có chất lượng cao về lý luận và thực tiễn để xuất bản trong tạp chí Khoa học giáo dục của Trường Đại học Sư phạm Hà Nội, trong đó có 04 báo cáo bằng tiếng Anh, góp phần tạo động lực và nâng cao nhận thức của Đoàn viên sinh viên Sư phạm trong việc Nghiên cứu khoa học và học tập Ngoại ngữ để phát triển nghề nghiệp trong tương lai, giúp các em tự tin đáp ứng các yêu cầu của ngành giáo dục trong thời đại mới.",
+    "source": "https://hnue.edu.vn/tin-tuc/9272/hoi-thao-khoa-hoc-can-bo-tre-truong-dai-hoc-su-pham-ha-noi-lan-thu-12.html"
+  },
+  {
+    "id": "mang-luoi-2023",
+    "sheetRow": 147,
+    "year": "19/10/2023",
+    "title": "Hội nghị: “Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm”",
+    "image": "Tư liệu Cụm 3/Khu2/Hội nghị Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm.jpg",
+    "content": "Nhằm tăng cường mối liên kết trách nhiệm giữa trường phổ thông và trường sư phạm trong quá trình phát triển nghề nghiệp cho sinh viên, giáo viên, sáng ngày 19 tháng 10 năm 2023, Trường Đại học Sư phạm Hà Nội đã tổ chức Hội nghị: “Mạng lưới đối tác phát triển nghề nghiệp cho sinh viên sư phạm”. \nTrên cơ sở phân tích nội dung thực tập, thực hành sư phạm, thực trạng mối liên kết trách nhiệm giữa trường sư phạm và trường phổ thông; Hội nghị đề xuất nguyên tắc, xây dựng mối liên kết trách nhiệm giữa trường sư phạm và trường phổ thông trong phát triển nghề nghiệp cho sinh viên, giáo viên hướng đến phát triển mối quan hệ cộng tác bền vững và hiệu quả.",
+    "source": "https://hnue.edu.vn/tin-tuc/10370/hoi-nghi-mang-luoi-doi-tac-phat-trien-nghe-nghiep-cho-sinh-vien-su-pham.html"
+  },
+  {
+    "id": "chung-khao-2024",
+    "sheetRow": 141,
+    "year": "29/05/2024",
+    "title": "Vòng Chung khảo Giải thưởng Khoa học Công nghệ dành cho sinh viên năm 2024",
+    "image": "Tư liệu Cụm 3/Khu2/Vòng Chung khảo Giải thưởng Khoa học Công nghệ dành cho sinh viên năm 2024.jpg",
+    "content": "Thực hiện kế hoạch năm học 2023-2024, sáng ngày 29/05/2024, tại Hội trường K1, Trường Đại học Sư phạm Hà Nội long trọng tổ chức Vòng Chung khảo Giải thưởng Khoa học Công nghệ dành cho sinh viên năm 2024\nSau phiên khai mạc, các hội đồng chuyên ngành được diễn ra nhằm lựa chọn các công trình chất lượng dự thi vòng chung khảo giải thưởng khoa học công nghệ cấp Bộ và giải thưởng Eureka. Trong đó, Hội đồng Khoa học Giáo dục gồm có 16 đề tài; Hội đồng Khoa học tự nhiên – Công nghệ có 12 đề tài và Hội đồng Khoa học Xã hội và Nhân văn có 09 đề tài. \nVòng chung khảo Giải thưởng khoa học và công nghệ dành cho sinh viên năm 2024 đã diễn ra thành công tốt đẹp. Hoạt động nghiên cứu khoa học của nhà trường không ngừng phát triển qua các năm và đưa Trường Đại học Sư phạm Hà Nội  trở thành cơ sở không chỉ đào tạo giáo viên hàng đầu của cả nước mà còn là cơ sở nghiên cứu khoa học tầm cỡ quốc gia.",
+    "source": "https://hnue.edu.vn/tin-tuc/10528/vong-chung-khao-giai-thuong-khoa-hoc-cong-nghe-danh-cho-sinh-vien-nam-hoc-2023-2024.html"
+  },
+  {
+    "id": "nckh-2024",
+    "sheetRow": 145,
+    "year": "15/01/2025",
+    "title": "Hội nghị tổng kết, trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2024",
+    "image": "Tư liệu Cụm 3/Khu2/(2024) HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024/HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024.jpg",
+    "gallery": [
+      "Tư liệu Cụm 3/Khu2/(2024) HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024/HỘI NGHỊ TỔNG KẾT GIẢI THƯỞNG KHOA HỌC CÔNG NGHỆ DÀNH CHO GIẢNG VIÊN, SINH VIÊN NĂM 2024 (2).jpg"
+    ],
+    "content": "Sáng ngày 15/01/2025, tại Hội trường 11-10, Trường Đại học Sư phạm Hà Nội đã tổ chức thành công Hội nghị tổng kết và trao Giải thưởng Khoa học và Công nghệ dành cho giảng viên trẻ, sinh viên năm 2024. Trong năm học 2023–2024, hoạt động Nghiên cứu Khoa học của sinh viên Trường Đại học Sư phạm Hà Nội có sự phát triển vượt bậc so với năm học 2022–2023.\nBan tổ chức Giải thưởng Khoa học và Công nghệ dành cho sinh viên cấp trường đã nhận được 90 công trình nghiên cứu của sinh viên, trong đó có 14/90 báo cáo bằng tiếng Anh. Đặc biệt, số lượng đề tài thực hiện bởi các nhóm sinh viên và các đề tài có sản phẩm công bố khoa học quốc tế có xu hướng tăng. Nhà trường đã công bố và trao giải cho các công trình tham gia, bao gồm: 15 giải Nhất, 22 giải Nhì, 24 giải Ba và 29 giải Khuyến khích.",
+    "source": "https://hnue.edu.vn/tin-tuc/10730/hoi-nghi-tong-ket-giai-thuong-khoa-hoc-cong-nghe-danh-cho-giang-vien-sinh-vien-nam-2024.html"
+  },
+  {
+    "id": "chung-khao-2025",
+    "sheetRow": 144,
+    "year": "29/05/2025",
+    "title": "Vòng Chung khảo Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025",
+    "image": "Tư liệu Cụm 3/Khu2/Vòng chung khảo HT lớn.jpg",
+    "content": "Sáng ngày 29/5/2025, tại nhà K, Trường Đại học Sư phạm Hà Nội, vòng Chung khảo Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025 đã diễn ra trong không khí trang trọng, trí tuệ và đầy cảm hứng. Trong tổng số 15.912 SV toàn trường có 1.000 đề tài đăng ký tham gia, 743 đề tài được hoàn thành với sự tham gia thực hiện của 2.035 SV và 438 cán bộ hướng dẫn trên tổng số hơn 600 giảng viên của Nhà trường. Sau các vòng tuyển chọn ở cấp Bộ môn và cấp Khoa, 103 đề tài xuất sắc đã được gửi tham dự Giải thưởng cấp Trường, và trong số đó, 38 đề tài tiêu biểu nhất đã vượt qua vòng Sơ khảo để bước vào Vòng Chung khảo. Những kết quả nổi bật được ghi nhận tại vòng Chung khảo lần này không chỉ là thành quả của quá trình lao động miệt mài, trí tuệ sáng tạo và sự tâm huyết của các giảng viên, sinh viên, mà còn là minh chứng sinh động cho sự phát triển không ngừng của phong trào nghiên cứu khoa học trong cộng đồng, góp phần làm giàu thêm kho tàng tri thức và nâng tầm vị thế của Trường Đại học Sư phạm Hà Nội trên bản đồ khoa học giáo dục quốc gia và thế giới.",
+    "source": "https://hnue.edu.vn/tin-tuc/10851/vong-chung-khao-giai-thuong-khoa-hoc-va-cong-nghe-danh-cho-sinh-vien-truong-dai-hoc-su-pham-ha-noi-nam-2025-khang-dinh-tri-tue-sang-tao-lan-toa-niem-dam-me-nghien-cuu-khoa-hoc.html"
+  },
+  {
+    "id": "can-bo-tre-13",
+    "sheetRow": 143,
+    "year": "22/08/2025",
+    "title": "Hội thảo Khoa học Cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XIII, năm 2025",
+    "image": "Tư liệu Cụm 3/Khu2/Hội thảo Khoa học Cán bộ trẻ Trường Đại học Sư phạm Hà Nội lần thứ XIII, năm 2025.jpg",
+    "content": "Ngày 22/8/2025, tại Hội trường K1, Trường Đại học Sư phạm Hà Nội đã diễn ra Hội thảo Khoa học Cán bộ trẻ lần thứ XIII với sự tham gia của đông đảo cán bộ trẻ, giảng viên, học viên cao học, nghiên cứu sinh trong toàn trường. Đây là hoạt động khoa học thường niên có ý nghĩa quan trọng, tạo diễn đàn để các nhà nghiên cứu trẻ trao đổi học thuật, chia sẻ kinh nghiệm và công bố kết quả nghiên cứu mới.\nHội thảo đã nhận được toàn văn 20 bài viết từ các tác giả, nhóm nghiên cứu là giảng viên, nghiên cứu sinh từ các Khoa trong Nhà trường, cùng sự tham gia của cộng tác viên từ các trường THPT, Trường Đại học Sư phạm – Đại học Thái Nguyên, Đại học Sài Gòn. Các ý kiến trao đổi sôi nổi, thẳng thắn và mang tính xây dựng đã mở ra những gợi ý thiết thực, có giá trị trong việc nâng cao chất lượng đào tạo giáo viên, thúc đẩy đổi mới chương trình, phương pháp giảng dạy và nghiên cứu khoa học trong nhà trường.",
+    "source": "https://hnue.edu.vn/tin-tuc/10943"
+  },
+  {
+    "id": "tap-huan-ai-2025",
+    "sheetRow": 149,
+    "year": "27/11/2025",
+    "title": "Tập huấn “Ứng dụng Trí tuệ nhân tạo (AI) trong học tập và nghiên cứu khoa học dành cho sinh viên” năm 2025",
+    "image": "Tư liệu Cụm 3/Khu2/tập huấn Ứng dụng Trí tuệ nhân tạo (AI) trong học tập và NCKH dành cho SV.jpg",
+    "content": "Nhằm thực hiện kế hoạch năm học 2025 - 2026 và bồi dưỡng, nâng cao chất lượng công tác Đoàn và đặc biệt là trang bị những kĩ năng thiết yếu cho sinh viên Sư phạm trong thời đại mới; sáng ngày 27/11/2025, tại Hội trường 11/10, Ban Chấp hành Đoàn trường Đại học Sư phạm Hà Nội long trọng tổ chức lớp tập huấn với chủ đề: “Ứng dụng Trí tuệ nhân tạo (AI) trong học tập và nghiên cứu khoa học dành cho sinh viên”. \nBuổi tập huấn đã mang đến cho sinh viên những góc nhìn mới, những công cụ hữu ích và động lực mạnh mẽ để mỗi sinh viên có thể chủ động tiếp cận AI một cách phù hợp và sáng tạo. Những kiến thức và kĩ năng thu nhận được trong buổi tập huấn sẽ trở thành hành trang quan trọng, giúp mỗi sinh viên Sư phạm nâng cao hiệu quả học tập, nghiên cứu khoa học và bắt kịp xu thế đổi mới giáo dục trong kỉ nguyên số.",
+    "source": "https://www.facebook.com/thanhnien.hnue/posts/-recap-l%E1%BB%9Bp-t%E1%BA%ADp-hu%E1%BA%A5n-%E1%BB%A9ng-d%E1%BB%A5ng-tr%C3%AD-tu%E1%BB%87-nh%C3%A2n-t%E1%BA%A1o-ai-trong-h%E1%BB%8Dc-t%E1%BA%ADp-v%C3%A0-nghi%C3%AAn-c%E1%BB%A9u-kho/1306088637986115/"
+  },
+  {
+    "id": "nckh-2025",
+    "sheetRow": 142,
+    "year": "20/01/2026",
+    "title": "Hội nghị tổng kết, trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025",
+    "image": "Tư liệu Cụm 3/Khu2/NCKH 2025.jpg",
+    "content": "Sáng ngày 20/01/2026, Trường Đại học Sư phạm Hà Nội tổ chức Hội nghị tổng kết và trao Giải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2025. Trong tổng số gần 16 nghìn sinh viên toàn Trường, có khoảng 1.000 đề tài đăng ký tham gia nghiên cứu khoa học. Trong đó, 743 đề tài được hoàn thành, với sự tham gia của hơn 2.000 sinh viên và hàng trăm giảng viên hướng dẫn.\nKết quả chung cuộc, Nhà trường đã trao 19 giải Nhất, 19 giải Nhì, 32 giải Ba và 30 giải Khuyến khích, ghi nhận xứng đáng những công trình nghiên cứu có chất lượng học thuật và giá trị thực tiễn cao.\nNăm 2025 có thể nói là một năm bứt phá của phong trào NCKH sinh viên với các thành tích: 2 Giải Nhất, 3 Giải Nhì, 7 Giải Ba và 4 Giải Khuyến Khích Giải thưởng KH&CN dành cho sinh viên các trường ĐH trong toàn quốc do Bộ GD&ĐT chủ trì. Với những thành tích này, Trường ĐHSP Hà Nội là một trong 3 trường có thành tích cao nhất của Bộ GD&ĐT. Ngoài ra, sinh viên nhà trường còn đạt 1 Giải Nhì và 2 Giải Khuyến khích Giải thưởng SVNCKH EUREKA do Thành Đoàn TPHCM tổ chức.",
+    "source": "https://hnue.edu.vn/tin-tuc/11117/hoi-nghi-tong-ket-trao-giai-thuong-khoa-hoc-va-cong-nghe-danh-cho-sinh-vien-nam-2025.html"
+  },
+  {
+    "id": "chung-khao-2026",
+    "sheetRow": 140,
+    "year": "28/05/2026",
+    "title": "Vòng Chung khảo Giải thưởng Khoa học và Công nghệ cấp Trường dành cho sinh viên năm 2026",
+    "image": "Tư liệu Cụm 3/Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026.jpg",
+    "gallery": [
+      "Tư liệu Cụm 3/Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026 (2).jpg",
+      "Tư liệu Cụm 3/Khu2/(2026) VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026/VÒNG CHUNG KHẢO GIẢI THƯỞNG KHOA HỌC VÀ CÔNG NGHỆ DÀNH CHO SINH VIÊN NĂM 2026 (3).jpg"
+    ],
+    "content": "Sáng ngày 28/5/2026, tại Hội trường K1, Trường Đại học Sư phạm Hà Nội đã diễn ra Vòng Chung khảo Giải thưởng Khoa học và Công nghệ cấp Trường dành cho sinh viên năm 2026. Đây là hoạt động thường niên có ý nghĩa quan trọng nhằm thúc đẩy phong trào nghiên cứu khoa học trong sinh viên, đồng thời tạo môi trường để các bạn trẻ phát huy tư duy sáng tạo, năng lực nghiên cứu và khả năng vận dụng kiến thức vào thực tiễn. \nGiải thưởng Khoa học và Công nghệ dành cho sinh viên năm 2026 tiếp tục ghi dấu bằng sự phát triển mạnh mẽ cả về quy mô lẫn chất lượng chuyên môn. Trong tổng số 17.152 sinh viên toàn trường có hơn 1.000 đề tài đăng ký tham gia nghiên cứu khoa học; trong đó 819 đề tài đã được hoàn thành với sự tham gia của 2.243 sinh viên và 405 cán bộ hướng dẫn. Tổng số đề tài tham dự vòng Sơ khảo năm nay đạt 123 đề tài, tăng 19,4% so với năm 2025.",
+    "source": "https://hnue.edu.vn/tin-tuc/11273/truong-dai-hoc-su-pham-ha-noi-to-chuc-vong-chung-khao-giai-thuong-khoa-hoc-va-cong-nghe-danh-cho-sinh-vien-nam-2026.html"
+  }
 ]);
 
 export const ZONE3_ACHIEVEMENTS = freezeItems([
